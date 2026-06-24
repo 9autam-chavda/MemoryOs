@@ -2,6 +2,30 @@ const authService = require(
   "../services/auth.service"
 );
 
+const login = async (req, res) => {
+  try {
+    const result =
+      await authService.loginUser(
+        req.body
+      );
+
+    res.json({
+      success: true,
+      token: result.token,
+      user: {
+        id: result.user._id,
+        name: result.user.name,
+        email: result.user.email,
+      },
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const register = async (req, res) => {
   try {
     const user =
@@ -28,5 +52,6 @@ const register = async (req, res) => {
 };
 
 module.exports = {
-  register,
+    register,
+    login,
 };
