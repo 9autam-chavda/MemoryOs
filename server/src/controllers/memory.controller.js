@@ -31,6 +31,33 @@ const uploadMemory =
     }
 };
 
+const getMemories = async (req, res) => {
+
+    try {
+
+        const memories =
+            await memoryService.getUserMemories(
+                req.user.id
+            );
+
+        res.status(200).json({
+            success: true,
+            count: memories.length,
+            data: memories
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
 module.exports = {
   uploadMemory,
+  getMemories,
 };

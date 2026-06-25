@@ -26,4 +26,10 @@ router.post(
   memoryController.uploadMemory
 );
 
+router.get(
+    "/",
+    protect,
+    memoryController.getMemories
+);
+
 module.exports = router;

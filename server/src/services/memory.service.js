@@ -34,6 +34,16 @@ const uploadMemory =
     return memory;
 };
 
+const getUserMemories = async (userId) => {
+    return await MemoryItem.find({
+        userId
+    })
+    .sort({
+        createdAt: -1
+    });
+};
+
 module.exports = {
   uploadMemory,
+  getUserMemories,
 };
