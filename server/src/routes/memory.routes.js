@@ -32,4 +32,11 @@ router.get(
     memoryController.getMemories
 );
 
+router.delete(
+    "/:id",
+    protect,
+    memoryController.deleteMemory
+);
+
+
 module.exports = router;

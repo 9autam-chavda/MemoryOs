@@ -45,6 +45,11 @@ const memoryItemSchema =
         default: "uncategorized",
       },
 
+      imageKitFileId: {
+        type: String,
+        required: true,
+      },
+
       tags: [
         {
           type: String,

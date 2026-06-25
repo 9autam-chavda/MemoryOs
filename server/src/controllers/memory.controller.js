@@ -57,7 +57,34 @@ const getMemories = async (req, res) => {
 
 };
 
+const deleteMemory = async (req, res) => {
+
+    try {
+
+        const result =
+            await memoryService.deleteMemory(
+                req.params.id,
+                req.user.id
+            );
+
+        res.status(200).json({
+            success: true,
+            message: result.message
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
 module.exports = {
   uploadMemory,
   getMemories,
+  deleteMemory,
 };

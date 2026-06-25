@@ -24,8 +24,11 @@ const uploadMemory =
         fileName:
           file.originalname,
 
-        fileUrl:
+        fileUrl: 
           result.url,
+
+        imageKitFileId: 
+          result.fileId,
 
         type:
           "screenshot",
@@ -43,7 +46,29 @@ const getUserMemories = async (userId) => {
     });
 };
 
+const deleteMemory = async (memoryId, userId) => {
+
+    const memory = await MemoryItem.findById(memoryId);
+
+    if (!memory) {
+        throw new Error("Memory not found");
+    }
+
+    if (memory.userId.toString() !== userId) {
+        throw new Error("Unauthorized");
+    }
+
+    await imagekit.deleteFile(memory.imageKitFileId);
+
+    await MemoryItem.findByIdAndDelete(memoryId);
+
+    return {
+        message: "Memory deleted successfully"
+    };
+};
+
 module.exports = {
   uploadMemory,
   getUserMemories,
+  deleteMemory,
 };
