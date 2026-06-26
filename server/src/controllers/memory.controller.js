@@ -113,9 +113,30 @@ const searchMemories = async (req, res) => {
   }
 };
 
+const getMemoryDetails = async (req, res) => {
+  try {
+    const memory = await memoryService.getMemoryById(
+      req.params.id,
+      req.user.id
+    );
+
+    res.status(200).json({
+      success: true,
+      data: memory,
+    });
+
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadMemory,
   getMemories,
   deleteMemory,
   searchMemories,
+  getMemoryDetails,
 };

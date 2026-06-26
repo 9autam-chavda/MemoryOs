@@ -30,6 +30,12 @@ router.get(
   memoryController.searchMemories
 );
 
+router.get(
+  "/:id",
+  protect,
+  memoryController.getMemoryDetails
+);
+
 // Delete Memory
 router.delete(
   "/:id",

@@ -87,9 +87,40 @@ const searchMemories = async (userId, query) => {
   return memories.map(toMemoryCard);
 };
 
+const getMemoryById = async (memoryId, userId) => {
+
+  const memory = await MemoryItem.findOne({
+    _id: memoryId,
+    userId,
+  });
+
+  if (!memory) {
+    throw new Error("Memory not found");
+  }
+
+  return {
+    id: memory._id,
+
+    fileName: memory.fileName,
+
+    fileUrl: memory.fileUrl,
+
+    extractedText: memory.extractedText,
+
+    wordCount: memory.wordCount,
+
+    category: memory.category,
+
+    tags: memory.tags,
+
+    createdAt: memory.createdAt,
+  };
+};
+
 module.exports = {
   uploadMemory,
   getUserMemories,
   deleteMemory,
   searchMemories,
+  getMemoryById,
 };
