@@ -2,6 +2,23 @@ const imagekitService = require("./imagekit.service");
 const ocrService = require("./ocr.service");
 const MemoryItem = require("../models/MemoryItem");
 
+const toMemoryCard = (memory) => {
+  const text = memory.extractedText || "";
+
+  return {
+    id: memory._id,
+    fileName: memory.fileName,
+    fileUrl: memory.fileUrl,
+    category: memory.category,
+    wordCount: memory.wordCount,
+    createdAt: memory.createdAt,
+    preview:
+      text.length > 120
+        ? text.substring(0, 120) + "..."
+        : text,
+  };
+};
+
 const uploadMemory = async (file, userId) => {
   const uploadResult = await imagekitService.uploadFile(file);
   const ocrResult = await ocrService.extractText(file.buffer);
@@ -26,9 +43,14 @@ const uploadMemory = async (file, userId) => {
 };
 
 const getUserMemories = async (userId) => {
-  return await MemoryItem.find({ userId }).sort({
+
+  const memories = await MemoryItem.find({
+    userId,
+  }).sort({
     createdAt: -1,
   });
+
+  return memories.map(toMemoryCard);
 };
 
 const deleteMemory = async (memoryId, userId) => {
@@ -51,8 +73,23 @@ const deleteMemory = async (memoryId, userId) => {
   };
 };
 
+const searchMemories = async (userId, query) => {
+  const memories = await MemoryItem.find({
+    userId,
+    extractedText: {
+      $regex: query,
+      $options: "i",
+    },
+  }).sort({
+    createdAt: -1,
+  });
+
+  return memories.map(toMemoryCard);
+};
+
 module.exports = {
   uploadMemory,
   getUserMemories,
   deleteMemory,
+  searchMemories,
 };

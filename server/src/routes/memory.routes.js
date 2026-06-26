@@ -1,24 +1,14 @@
-const express =
-  require("express");
+const express = require("express");
 
-const router =
-  express.Router();
+const router = express.Router();
 
-const protect =
-  require(
-    "../middleware/auth.middleware"
-  );
+const protect = require("../middleware/auth.middleware");
 
-const upload =
-  require(
-    "../middleware/upload.middleware"
-  );
+const upload = require("../middleware/upload.middleware");
 
-const memoryController =
-  require(
-    "../controllers/memory.controller"
-  );
+const memoryController = require("../controllers/memory.controller");
 
+// Upload Memory
 router.post(
   "/upload",
   protect,
@@ -26,17 +16,25 @@ router.post(
   memoryController.uploadMemory
 );
 
+// Get All Memories
 router.get(
-    "/",
-    protect,
-    memoryController.getMemories
+  "/",
+  protect,
+  memoryController.getMemories
 );
 
+// Search Memories
+router.get(
+  "/search",
+  protect,
+  memoryController.searchMemories
+);
+
+// Delete Memory
 router.delete(
-    "/:id",
-    protect,
-    memoryController.deleteMemory
+  "/:id",
+  protect,
+  memoryController.deleteMemory
 );
-
 
 module.exports = router;

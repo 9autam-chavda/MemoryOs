@@ -83,8 +83,39 @@ const deleteMemory = async (req, res) => {
 
 };
 
+const searchMemories = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || !q.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
+
+    const memories = await memoryService.searchMemories(
+      req.user.id,
+      q.trim()
+    );
+
+    res.status(200).json({
+      success: true,
+      count: memories.length,
+      data: memories,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadMemory,
   getMemories,
   deleteMemory,
+  searchMemories,
 };
