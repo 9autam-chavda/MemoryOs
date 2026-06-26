@@ -1,15 +1,25 @@
 const imagekitService = require("./imagekit.service");
+const ocrService = require("./ocr.service");
 const MemoryItem = require("../models/MemoryItem");
 
 const uploadMemory = async (file, userId) => {
   const uploadResult = await imagekitService.uploadFile(file);
+  const ocrResult = await ocrService.extractText(file.buffer);
 
   const memory = await MemoryItem.create({
     userId,
+
     fileName: file.originalname,
+
     fileUrl: uploadResult.fileUrl,
+
     imageKitFileId: uploadResult.fileId,
+
     type: "screenshot",
+
+    extractedText: ocrResult.extractedText,
+
+    wordCount: ocrResult.wordCount,
   });
 
   return memory;

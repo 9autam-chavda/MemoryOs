@@ -11,6 +11,8 @@ const memoryRoutes =
     "./routes/memory.routes"
   );
 
+const testRoutes = require("./routes/test.routes");
+
 const app = express();
 
 app.use(cors());
@@ -37,5 +39,7 @@ app.use(
   "/api/memory",
   memoryRoutes
 );
+
+app.use("/api/test", testRoutes);
 
 module.exports = app;
