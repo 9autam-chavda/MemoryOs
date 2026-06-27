@@ -19,7 +19,11 @@ const toMemoryCard = (memory) => {
   };
 };
 
+
+
 const uploadMemory = async (file, userId) => {
+
+
   const uploadResult = await imagekitService.uploadFile(file);
   const ocrResult = await ocrService.extractText(file.buffer);
 

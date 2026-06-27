@@ -5,7 +5,6 @@ const memoryService =
 
 const uploadMemory =
   async (req, res) => {
-
     try {
 
       const memory =
