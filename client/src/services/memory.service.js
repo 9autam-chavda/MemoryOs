@@ -10,7 +10,13 @@ const getMemoryById = async (id) => {
   return response.data;
 };
 
+const deleteMemory = async (id) => {
+  const response = await api.delete(`/memory/${id}`);
+  return response.data;
+};
+
 export default {
   getMemories,
   getMemoryById,
+  deleteMemory,
 };

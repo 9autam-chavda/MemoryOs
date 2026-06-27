@@ -3,7 +3,6 @@ import { useAuth } from "../../contexts/AuthContext";
 
 function Sidebar() {
   const navigate = useNavigate();
-
   const { logout } = useAuth();
 
   const handleLogout = () => {
@@ -21,7 +20,8 @@ function Sidebar() {
   return (
     <aside className="w-64 bg-zinc-950 border-r border-gray-800 p-4 flex flex-col">
 
-      <nav className="flex-1 space-y-2">
+      {/* Navigation */}
+      <nav className="flex flex-col gap-2">
 
         <NavLink
           to="/dashboard"
@@ -39,12 +39,17 @@ function Sidebar() {
 
       </nav>
 
-      <button
-        onClick={handleLogout}
-        className="mt-4 bg-red-600 hover:bg-red-700 rounded-lg py-3"
-      >
-        Logout
-      </button>
+      {/* Logout Button */}
+      <div className="mt-auto">
+
+        <button
+          onClick={handleLogout}
+          className="w-full bg-red-600 hover:bg-red-700 rounded-lg py-3 transition"
+        >
+          Logout
+        </button>
+
+      </div>
 
     </aside>
   );

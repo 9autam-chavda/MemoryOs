@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import memoryService from "../services/memory.service";
 import StatCard from "../components/ui/StatCard";
+import MemoryCard from "../components/memory/MemoryCard";
 
 function Dashboard() {
   const [memories, setMemories] = useState([]);
@@ -72,32 +73,40 @@ function Dashboard() {
         Recent Memories
         </h2>
 
-      <div className="space-y-4">
+      {memories.length === 0 ? (
 
-        {memories.map((memory) => (
+          <div className="text-center py-20">
 
-          <div
-            key={memory._id}
-            className="border border-gray-700 rounded-lg p-4"
-          >
+              <div className="text-7xl mb-4">
+                  📂
+              </div>
 
-            <h2 className="font-semibold">
-              {memory.fileName}
-            </h2>
+              <h2 className="text-2xl font-semibold mb-2">
+                  No memories yet
+              </h2>
 
-            <p className="text-gray-400">
-              {memory.category}
-            </p>
-
-            <p className="text-sm text-gray-500">
-              {memory.wordCount} words
-            </p>
+              <p className="text-gray-400">
+                  Upload your first memory to get started.
+              </p>
 
           </div>
 
-        ))}
+      ) : (
 
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {memories.map((memory) => (
+
+                  <MemoryCard
+                      key={memory.id}
+                      memory={memory}
+                  />
+
+              ))}
+
+          </div>
+
+      )}
 
     </AppLayout>
   );
