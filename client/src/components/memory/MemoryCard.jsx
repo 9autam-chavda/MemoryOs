@@ -1,7 +1,45 @@
 import { useNavigate } from "react-router-dom";
 
+import ImagePreview from "./previews/ImagePreview";
+import PdfPreview from "./previews/PdfPreview";
+import AudioPreview from "./previews/AudioPreview";
+import VideoPreview from "./previews/VideoPreview";
+import TextPreview from "./previews/TextPreview";
+
 function MemoryCard({ memory }) {
   const navigate = useNavigate();
+
+  const renderPreview = () => {
+    switch (memory.fileType) {
+      case "image":
+        return (
+          <ImagePreview
+            fileUrl={memory.fileUrl}
+            fileName={memory.fileName}
+          />
+        );
+
+      case "pdf":
+        return <PdfPreview />;
+
+      case "audio":
+        return <AudioPreview />;
+
+      case "video":
+        return <VideoPreview />;
+
+      case "text":
+        return <TextPreview />;
+
+      default:
+        return (
+          <ImagePreview
+            fileUrl={memory.fileUrl}
+            fileName={memory.fileName}
+          />
+        );
+    }
+  };
 
   return (
     <div
@@ -22,42 +60,8 @@ function MemoryCard({ memory }) {
         hover:shadow-blue-500/10
       "
     >
-
-      {/* Image */}
-      <div className="overflow-hidden">
-
-        {memory.fileType === "pdf" ? (
-
-          <div className="h-52 flex flex-col items-center justify-center bg-red-950">
-
-            <div className="text-7xl">
-              📄
-            </div>
-
-            <p className="mt-3 text-red-300 font-semibold">
-              PDF Document
-            </p>
-
-          </div>
-
-        ) : (
-
-          <img
-            src={memory.fileUrl}
-            alt={memory.fileName}
-            className="
-              h-52
-              w-full
-              object-cover
-              transition-transform
-              duration-500
-              group-hover:scale-105
-            "
-          />
-
-        )}
-
-      </div>
+      {/* Preview */}
+      {renderPreview()}
 
       {/* Content */}
       <div className="p-4">
@@ -101,7 +105,6 @@ function MemoryCard({ memory }) {
         </div>
 
       </div>
-
     </div>
   );
 }

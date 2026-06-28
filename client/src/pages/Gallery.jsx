@@ -14,6 +14,15 @@ function Gallery() {
   const [search, setSearch] = useState("");
   const [fileType, setFileType] = useState("all");
 
+  const filters = [
+    { value: "all", label: "All" },
+    { value: "image", label: "🖼 Images" },
+    { value: "pdf", label: "📄 PDFs" },
+    { value: "audio", label: "🎵 Audio" },
+    { value: "video", label: "🎬 Videos" },
+    { value: "text", label: "📝 Text" },
+  ];
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadMemories(search);
@@ -24,7 +33,6 @@ function Gallery() {
 
   const loadMemories = async (query = "") => {
     try {
-
       if (loading) {
         setLoading(true);
       } else {
@@ -32,20 +40,15 @@ function Gallery() {
       }
 
       const response = query.trim()
-        ? await memoryService.searchMemories( query,fileType)
+        ? await memoryService.searchMemories(query, fileType)
         : await memoryService.getMemories(fileType);
 
       setMemories(response.data);
-
     } catch (error) {
-
       console.error(error);
-
     } finally {
-
       setLoading(false);
       setSearchLoading(false);
-
     }
   };
 
@@ -70,87 +73,122 @@ function Gallery() {
     <AppLayout>
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col gap-6">
 
-        <h1 className="text-4xl font-bold">
-          Gallery
-        </h1>
+        <div className="flex items-center justify-between">
 
-        <button
-          onClick={() => setIsUploadOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg transition"
-        >
-          + Upload Memory
-        </button>
+          <div>
 
-      </div>
+            <h1 className="text-5xl font-extrabold tracking-tight">
+              Gallery
+            </h1>
 
-      {/* File Type Filters */}
-      <div className="flex gap-3 mb-6">
+            <p className="text-gray-400 mt-2">
+              Search and manage all your memories.
+            </p>
 
-        {["all", "image", "pdf"].map((type) => (
+          </div>
 
           <button
-            key={type}
-            onClick={() => setFileType(type)}
-            className={`
-              px-4
-              py-2
-              rounded-full
+            onClick={() => setIsUploadOpen(true)}
+            className="
+              bg-blue-600
+              hover:bg-blue-700
+              px-6
+              py-3
+              rounded-xl
+              font-semibold
               transition
-              ${
-                fileType === type
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-800 hover:bg-zinc-700"
-              }
-            `}
+              shadow-lg
+              shadow-blue-500/20
+            "
           >
-            {type === "all" && "All"}
-            {type === "image" && "🖼 Images"}
-            {type === "pdf" && "📄 PDFs"}
+            + Upload Memory
           </button>
 
-        ))}
+        </div>
+
+        {/* Search */}
+
+        <div className="relative">
+
+          <input
+            type="text"
+            placeholder="🔍 Search memories..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="
+              w-full
+              rounded-xl
+              border
+              border-zinc-700
+              bg-zinc-900
+              px-5
+              py-4
+              text-lg
+              focus:border-blue-500
+              focus:outline-none
+            "
+          />
+
+        </div>
+
+        {/* Filters */}
+
+        <div className="flex flex-wrap gap-3">
+
+          {filters.map((filter) => (
+
+            <button
+              key={filter.value}
+              onClick={() => setFileType(filter.value)}
+              className={`
+                px-5
+                py-3
+                rounded-full
+                font-medium
+                transition-all
+                duration-300
+                ${
+                  fileType === filter.value
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                    : "bg-zinc-800 text-gray-300 hover:bg-zinc-700"
+                }
+              `}
+            >
+              {filter.label}
+            </button>
+
+          ))}
+
+        </div>
+
+        {/* Search Status */}
+
+        <div className="h-5">
+
+          {searchLoading && (
+            <p className="text-sm text-blue-400">
+              Searching...
+            </p>
+          )}
+
+        </div>
 
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="🔍 Search OCR text..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="
-          w-full
-          p-3
-          rounded-lg
-          bg-zinc-900
-          border
-          border-zinc-700
-          focus:outline-none
-          focus:border-blue-500
-        "
-      />
+      {/* Memories */}
 
-      {/* Search Status */}
-      <div className="h-6 mt-2 mb-6">
+      <div className="mt-6">
 
-        {searchLoading && (
-          <p className="text-sm text-blue-400">
-            Searching...
-          </p>
-        )}
+        <MemoryGrid
+          memories={memories}
+          loading={searchLoading}
+          search={search}
+        />
 
       </div>
 
-      {/* Memory Grid */}
-      <MemoryGrid
-        memories={memories}
-        loading={searchLoading}
-        search={search}
-      />
-
-      {/* Upload Modal */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
