@@ -1,14 +1,14 @@
 const Tesseract = require("tesseract.js");
 
-const extractText = async (imageBuffer) => {
+const extract = async (file) => {
   try {
     const {
       data: { text },
-    } = await Tesseract.recognize(imageBuffer, "eng");
+    } = await Tesseract.recognize(file.buffer, "eng");
 
     const extractedText = text
-    .replace(/\s+/g, " ")
-    .trim();
+      .replace(/\s+/g, " ")
+      .trim();
 
     const wordCount = extractedText
       ? extractedText.split(/\s+/).length
@@ -18,16 +18,19 @@ const extractText = async (imageBuffer) => {
       extractedText,
       wordCount,
     };
+
   } catch (error) {
+
     console.error("OCR Error:", error);
 
     return {
       extractedText: "",
       wordCount: 0,
     };
+
   }
 };
 
 module.exports = {
-  extractText,
+  extract,
 };

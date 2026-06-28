@@ -1,68 +1,110 @@
 const mongoose = require("mongoose");
 
-const memoryItemSchema =
-  new mongoose.Schema(
-    {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-
-      type: {
-        type: String,
-        enum: [
-          "screenshot",
-          "image",
-          "pdf",
-          "note",
-        ],
-        default: "screenshot",
-      },
-
-      fileName: {
-        type: String,
-        required: true,
-      },
-
-      fileUrl: {
-        type: String,
-        required: true,
-      },
-
-      extractedText: {
-        type: String,
-        default: "",
-      },
-
-      wordCount: {
-        type: Number,
-        default: 0,
-      },
-
-      category: {
-        type: String,
-        default: "uncategorized",
-      },
-
-      imageKitFileId: {
-        type: String,
-        required: true,
-      },
-
-      tags: [
-        {
-          type: String,
-        },
-      ],
+const memoryItemSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    {
-      timestamps: true,
-    }
-  );
 
-module.exports =
-  mongoose.model(
-    "MemoryItem",
-    memoryItemSchema
-  );
+    fileType: {
+      type: String,
+      enum: [
+        "image",
+        "pdf",
+        "audio",
+        "video",
+        "text",
+        "other",
+      ],
+      required: true,
+    },
+
+    fileName: {
+      type: String,
+      required: true,
+    },
+
+    fileUrl: {
+      type: String,
+      required: true,
+    },
+
+    imageKitFileId: {
+      type: String,
+      required: true,
+    },
+
+    extractedText: {
+      type: String,
+      default: "",
+    },
+
+    wordCount: {
+      type: Number,
+      default: 0,
+    },
+
+    summary: {
+      type: String,
+      default: "",
+    },
+
+    category: {
+      type: String,
+      default: "uncategorized",
+    },
+
+    tags: [
+      {
+        type: String,
+      },
+    ],
+
+    metadata: {
+      size: {
+        type: Number,
+      },
+
+      mimeType: {
+        type: String,
+      },
+
+      width: {
+        type: Number,
+      },
+
+      height: {
+        type: Number,
+      },
+
+      duration: {
+        type: Number,
+      },
+
+      pageCount: {
+        type: Number,
+      },
+    },
+
+    processingStatus: {
+      type: String,
+      enum: [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+      ],
+      default: "completed",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model(
+  "MemoryItem",
+  memoryItemSchema
+);

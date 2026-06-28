@@ -1,47 +1,67 @@
 import { useEffect, useState } from "react";
 
 import AppLayout from "../components/layout/AppLayout";
-import MemoryCard from "../components/memory/MemoryCard";
+import MemoryGrid from "../components/memory/MemoryGrid";
 import UploadModal from "../components/upload/UploadModal";
 import memoryService from "../services/memory.service";
 
 function Gallery() {
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+
   const [search, setSearch] = useState("");
+  const [fileType, setFileType] = useState("all");
 
   useEffect(() => {
-    loadMemories();
-  }, [search]);
+    const timer = setTimeout(() => {
+      loadMemories(search);
+    }, 300);
 
-  const loadMemories = async () => {
+    return () => clearTimeout(timer);
+  }, [search, fileType]);
+
+  const loadMemories = async (query = "") => {
     try {
-      setLoading(true);
 
-      const response = search.trim()
-        ? await memoryService.searchMemories(search)
-        : await memoryService.getMemories();
+      if (loading) {
+        setLoading(true);
+      } else {
+        setSearchLoading(true);
+      }
+
+      const response = query.trim()
+        ? await memoryService.searchMemories( query,fileType)
+        : await memoryService.getMemories(fileType);
 
       setMemories(response.data);
+
     } catch (error) {
+
       console.error(error);
+
     } finally {
+
       setLoading(false);
+      setSearchLoading(false);
+
     }
   };
 
   const handleUploadSuccess = () => {
     setIsUploadOpen(false);
-    loadMemories();
+    loadMemories(search);
   };
 
   if (loading) {
     return (
       <AppLayout>
-        <h1 className="text-3xl font-bold">
-          Loading...
-        </h1>
+        <div className="flex justify-center items-center h-96">
+          <h1 className="text-3xl font-bold">
+            Loading memories...
+          </h1>
+        </div>
       </AppLayout>
     );
   }
@@ -65,6 +85,35 @@ function Gallery() {
 
       </div>
 
+      {/* File Type Filters */}
+      <div className="flex gap-3 mb-6">
+
+        {["all", "image", "pdf"].map((type) => (
+
+          <button
+            key={type}
+            onClick={() => setFileType(type)}
+            className={`
+              px-4
+              py-2
+              rounded-full
+              transition
+              ${
+                fileType === type
+                  ? "bg-blue-600 text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700"
+              }
+            `}
+          >
+            {type === "all" && "All"}
+            {type === "image" && "🖼 Images"}
+            {type === "pdf" && "📄 PDFs"}
+          </button>
+
+        ))}
+
+      </div>
+
       {/* Search */}
       <input
         type="text"
@@ -73,7 +122,6 @@ function Gallery() {
         onChange={(e) => setSearch(e.target.value)}
         className="
           w-full
-          mb-8
           p-3
           rounded-lg
           bg-zinc-900
@@ -84,44 +132,25 @@ function Gallery() {
         "
       />
 
-      {/* Empty State */}
-      {memories.length === 0 ? (
+      {/* Search Status */}
+      <div className="h-6 mt-2 mb-6">
 
-        <div className="text-center py-20">
-
-          <div className="text-7xl mb-4">
-            📂
-          </div>
-
-          <h2 className="text-2xl font-semibold mb-2">
-            {search
-              ? "No matching memories found"
-              : "No memories yet"}
-          </h2>
-
-          <p className="text-gray-400">
-            {search
-              ? "Try a different search keyword."
-              : "Upload your first memory to get started."}
+        {searchLoading && (
+          <p className="text-sm text-blue-400">
+            Searching...
           </p>
+        )}
 
-        </div>
+      </div>
 
-      ) : (
+      {/* Memory Grid */}
+      <MemoryGrid
+        memories={memories}
+        loading={searchLoading}
+        search={search}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          {memories.map((memory) => (
-            <MemoryCard
-              key={memory.id}
-              memory={memory}
-            />
-          ))}
-
-        </div>
-
-      )}
-
+      {/* Upload Modal */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}

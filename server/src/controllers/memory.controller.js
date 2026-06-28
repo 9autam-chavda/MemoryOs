@@ -36,7 +36,8 @@ const getMemories = async (req, res) => {
 
         const memories =
             await memoryService.getUserMemories(
-                req.user.id
+                req.user.id,
+                req.query.fileType
             );
 
         res.status(200).json({
@@ -95,7 +96,8 @@ const searchMemories = async (req, res) => {
 
     const memories = await memoryService.searchMemories(
       req.user.id,
-      q.trim()
+      q.trim(),
+      req.query.fileType
     );
 
     res.status(200).json({

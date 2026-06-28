@@ -1,5 +1,5 @@
 const imagekitService = require("./imagekit.service");
-const ocrService = require("./ocr.service");
+const extractService = require("./extract.service");
 const MemoryItem = require("../models/MemoryItem");
 
 const toMemoryCard = (memory) => {
@@ -9,6 +9,7 @@ const toMemoryCard = (memory) => {
     id: memory._id,
     fileName: memory.fileName,
     fileUrl: memory.fileUrl,
+    fileType: memory.fileType,
     category: memory.category,
     wordCount: memory.wordCount,
     createdAt: memory.createdAt,
@@ -19,13 +20,39 @@ const toMemoryCard = (memory) => {
   };
 };
 
+const getFileType = (mimeType) => {
 
+  if (mimeType.startsWith("image/")) {
+    return "image";
+  }
+
+  if (mimeType === "application/pdf") {
+    return "pdf";
+  }
+
+  if (mimeType.startsWith("audio/")) {
+    return "audio";
+  }
+
+  if (mimeType.startsWith("video/")) {
+    return "video";
+  }
+
+  if (
+    mimeType === "text/plain" ||
+    mimeType === "text/markdown"
+  ) {
+    return "text";
+  }
+
+  return "other";
+};
 
 const uploadMemory = async (file, userId) => {
 
-
   const uploadResult = await imagekitService.uploadFile(file);
-  const ocrResult = await ocrService.extractText(file.buffer);
+
+  const extractedData = await extractService.extractText(file);
 
   const memory = await MemoryItem.create({
     userId,
@@ -36,21 +63,34 @@ const uploadMemory = async (file, userId) => {
 
     imageKitFileId: uploadResult.fileId,
 
-    type: "screenshot",
+    fileType: getFileType(file.mimetype),
 
-    extractedText: ocrResult.extractedText,
+    extractedText: extractedData.extractedText,
 
-    wordCount: ocrResult.wordCount,
+    wordCount: extractedData.wordCount,
+
+    metadata: {
+      size: file.size,
+      mimeType: file.mimetype,
+    },
+
+    isProcessed: true,
   });
 
   return memory;
 };
 
-const getUserMemories = async (userId) => {
+const getUserMemories = async (userId, fileType) => {
 
-  const memories = await MemoryItem.find({
+  const filter = {
     userId,
-  }).sort({
+  };
+
+  if (fileType && fileType !== "all") {
+    filter.fileType = fileType;
+  }
+
+  const memories = await MemoryItem.find(filter).sort({
     createdAt: -1,
   });
 
@@ -58,6 +98,7 @@ const getUserMemories = async (userId) => {
 };
 
 const deleteMemory = async (memoryId, userId) => {
+
   const memory = await MemoryItem.findById(memoryId);
 
   if (!memory) {
@@ -77,14 +118,21 @@ const deleteMemory = async (memoryId, userId) => {
   };
 };
 
-const searchMemories = async (userId, query) => {
-  const memories = await MemoryItem.find({
+const searchMemories = async (userId, query, fileType) => {
+
+  const filter = {
     userId,
     extractedText: {
       $regex: query,
       $options: "i",
     },
-  }).sort({
+  };
+
+  if (fileType && fileType !== "all") {
+    filter.fileType = fileType;
+  }
+
+  const memories = await MemoryItem.find(filter).sort({
     createdAt: -1,
   });
 
@@ -108,6 +156,8 @@ const getMemoryById = async (memoryId, userId) => {
     fileName: memory.fileName,
 
     fileUrl: memory.fileUrl,
+
+    fileType: memory.fileType,
 
     extractedText: memory.extractedText,
 

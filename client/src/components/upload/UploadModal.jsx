@@ -1,54 +1,57 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
+
 import memoryService from "../../services/memory.service";
 
 function UploadModal({
   isOpen,
   onClose,
   onUploadSuccess,
-})  {
+}) {
 
-    const [file, setFile] = useState(null);
-    const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-    const handleUpload = async () => {
+  const handleUpload = async () => {
 
-        if (!file) {
-            alert("Please choose a file.");
-            return;
-        }
+    if (!file) {
+      toast.error("Please choose a file.");
+      return;
+    }
 
-        try {
+    try {
 
-            setLoading(true);
+      setLoading(true);
 
-            const formData = new FormData();
-                formData.append("file", file);
+      const formData = new FormData();
+      formData.append("file", file);
 
-                for (const [key, value] of formData.entries()) {
-                console.log(key, value);
-                }
+      await memoryService.uploadMemory(formData);
 
-                console.log(formData);
-                console.log(file);
-                console.log(file instanceof File);
+      toast.success("Memory uploaded successfully!");
 
-                await memoryService.uploadMemory(formData);
+      setFile(null);
 
-            onClose();
+      onUploadSuccess();
 
-        } catch (error) {
+    } catch (error) {
 
-   
+      toast.error(
+        error.response?.data?.message || "Upload failed."
+      );
 
-    alert(error.response?.data?.message || error.message);
+    } finally {
 
-}finally {
+      setLoading(false);
 
-            setLoading(false);
+    }
 
-        }
+  };
 
-    };
+  const handleClose = () => {
+    setFile(null);
+    onClose();
+  };
 
   if (!isOpen) {
     return null;
@@ -56,25 +59,41 @@ function UploadModal({
 
   return (
 
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 
-      <div className="bg-zinc-900 rounded-xl p-6 w-[420px]">
+      <div className="bg-zinc-900 rounded-xl p-6 w-[420px] border border-zinc-800">
 
         <h2 className="text-2xl font-bold mb-6">
           Upload Memory
         </h2>
 
         <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="mb-6 w-full"
+          type="file"
+          accept="
+            image/*,
+            application/pdf,
+            audio/*,
+            video/*,
+            .txt,
+            .md
+          "
+          onChange={(e) => setFile(e.target.files[0])}
+          className="mb-6 w-full"
         />
 
         <div className="flex justify-end gap-3">
 
           <button
-            onClick={onClose}
-            className="px-4 py-2 rounded bg-zinc-700 hover:bg-zinc-600"
+            onClick={handleClose}
+            disabled={loading}
+            className="
+              px-4
+              py-2
+              rounded
+              bg-zinc-700
+              hover:bg-zinc-600
+              disabled:opacity-50
+            "
           >
             Cancel
           </button>
@@ -82,8 +101,15 @@ function UploadModal({
           <button
             onClick={handleUpload}
             disabled={loading}
-            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
-            >
+            className="
+              px-4
+              py-2
+              rounded
+              bg-blue-600
+              hover:bg-blue-700
+              disabled:bg-gray-600
+            "
+          >
             {loading ? "Uploading..." : "Upload"}
           </button>
 

@@ -2,9 +2,16 @@ import axios from "axios";
 import api from "./api";
 import { getToken } from "../utils/token";
 
-const getMemories = async () => {
-  const response = await api.get("/memory");
+const getMemories = async (fileType = "all") => {
+
+  const response = await api.get("/memory", {
+    params: {
+      fileType,
+    },
+  });
+
   return response.data;
+
 };
 
 const getMemoryById = async (id) => {
@@ -30,12 +37,17 @@ const uploadMemory = async (formData) => {
   return response.data;
 };
 
-const searchMemories = async (query) => {
-  const response = await api.get(
-    `/memory/search?q=${encodeURIComponent(query)}`
-  );
+const searchMemories = async (query, fileType = "all") => {
+
+  const response = await api.get("/memory/search", {
+    params: {
+      q: query,
+      fileType,
+    },
+  });
 
   return response.data;
+
 };
 
 export default {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import AppLayout from "../components/layout/AppLayout";
 import memoryService from "../services/memory.service";
@@ -13,15 +14,15 @@ function MemoryDetails() {
     const [loading, setLoading] = useState(true);
 
     const formattedDate = memory
-    ? new Date(memory.createdAt).toLocaleDateString(
-          "en-IN",
-          {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-          }
-      )
-    : "";
+        ? new Date(memory.createdAt).toLocaleDateString(
+            "en-IN",
+            {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+            }
+        )
+        : "";
 
     useEffect(() => {
         fetchMemory();
@@ -38,7 +39,7 @@ function MemoryDetails() {
 
         } catch (error) {
 
-            console.error(error);
+            toast.error("Failed to load memory.");
 
         } finally {
 
@@ -63,13 +64,13 @@ function MemoryDetails() {
 
             await memoryService.deleteMemory(id);
 
+            toast.success("Memory deleted successfully.");
+
             navigate("/gallery");
 
         } catch (error) {
 
-            console.error(error);
-
-            alert("Failed to delete memory");
+            toast.error("Failed to delete memory.");
 
         }
 
@@ -79,9 +80,15 @@ function MemoryDetails() {
 
         return (
             <AppLayout>
-                <h1 className="text-3xl font-bold">
-                    Loading...
-                </h1>
+
+                <div className="flex justify-center items-center h-96">
+
+                    <h1 className="text-3xl font-bold">
+                        Loading...
+                    </h1>
+
+                </div>
+
             </AppLayout>
         );
 
@@ -108,11 +115,36 @@ function MemoryDetails() {
 
             <div className="max-w-5xl">
 
+                {memory.fileType === "pdf" ? (
+
+                <div className="mb-8">
+
+                    <iframe 
+                    src={memory.fileUrl}
+                    title={memory.fileName}
+                    className="w-full h-[700px] rounded-xl border border-zinc-700"
+                    />
+
+                    <a
+                    href={memory.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 mt-4 inline-block"
+                    >
+                    📄 Open PDF in New Tab
+                    </a>
+
+                </div>
+
+                ) : (
+
                 <img
                     src={memory.fileUrl}
                     alt={memory.fileName}
                     className="w-full rounded-xl mb-8"
                 />
+
+                )}
 
                 <h2 className="text-3xl font-bold">
                     {memory.fileName}
@@ -150,22 +182,22 @@ function MemoryDetails() {
 
                 <div className="mt-10">
 
-                  <button
-                      onClick={handleDelete}
-                      className="
-                          bg-red-600
-                          hover:bg-red-700
-                          px-6
-                          py-3
-                          rounded-lg
-                          font-semibold
-                          transition
-                      "
-                  >
-                      Delete Memory
-                  </button>
+                    <button
+                        onClick={handleDelete}
+                        className="
+                            bg-red-600
+                            hover:bg-red-700
+                            px-6
+                            py-3
+                            rounded-lg
+                            font-semibold
+                            transition
+                        "
+                    >
+                        Delete Memory
+                    </button>
 
-              </div>
+                </div>
 
             </div>
 
