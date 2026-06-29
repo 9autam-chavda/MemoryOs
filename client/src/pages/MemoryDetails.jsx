@@ -12,14 +12,6 @@ function MemoryDetails() {
   const [memory, setMemory] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const formattedDate = memory
-    ? new Date(memory.createdAt).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "";
-
   useEffect(() => {
     fetchMemory();
   }, []);
@@ -55,6 +47,14 @@ function MemoryDetails() {
     }
   };
 
+  const formattedDate = memory
+    ? new Date(memory.createdAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
+
   if (loading) {
     return (
       <AppLayout>
@@ -72,11 +72,7 @@ function MemoryDetails() {
 
       <button
         onClick={() => navigate("/gallery")}
-        className="
-          text-blue-400
-          hover:text-blue-300
-          mb-6
-        "
+        className="text-blue-400 hover:text-blue-300 mb-6"
       >
         ← Back to Gallery
       </button>
@@ -85,15 +81,21 @@ function MemoryDetails() {
         Memory Details
       </h1>
 
-      <div className="max-w-5xl">
+      <div className="max-w-6xl mx-auto">
 
-        {/* Preview */}
+                {/* Preview */}
 
         {memory.fileType === "image" && (
           <img
             src={memory.fileUrl}
             alt={memory.fileName}
-            className="w-full rounded-xl mb-8"
+            className="
+              w-full
+              rounded-2xl
+              border
+              border-zinc-800
+              mb-8
+            "
           />
         )}
 
@@ -106,9 +108,9 @@ function MemoryDetails() {
               className="
                 w-full
                 h-[700px]
-                rounded-xl
+                rounded-2xl
                 border
-                border-zinc-700
+                border-zinc-800
               "
             />
 
@@ -130,33 +132,38 @@ function MemoryDetails() {
         )}
 
         {memory.fileType === "audio" && (
-          <div className="mb-8">
-
-            <audio
-              controls
-              className="w-full"
-            >
+          <div
+            className="
+              mb-8
+              bg-zinc-900
+              rounded-2xl
+              p-6
+              border
+              border-zinc-800
+            "
+          >
+            <audio controls className="w-full">
               <source
                 src={memory.fileUrl}
                 type="audio/mpeg"
               />
             </audio>
-
           </div>
         )}
 
         {memory.fileType === "video" && (
           <div className="mb-8">
-
             <video
               controls
-              className="w-full rounded-xl"
+              className="
+                w-full
+                rounded-2xl
+                border
+                border-zinc-800
+              "
             >
-              <source
-                src={memory.fileUrl}
-              />
+              <source src={memory.fileUrl} />
             </video>
-
           </div>
         )}
 
@@ -164,8 +171,10 @@ function MemoryDetails() {
           <div
             className="
               mb-8
+              rounded-2xl
+              border
+              border-zinc-800
               bg-zinc-900
-              rounded-xl
               p-6
             "
           >
@@ -175,62 +184,200 @@ function MemoryDetails() {
           </div>
         )}
 
-        <h2 className="text-3xl font-bold">
-          {memory.fileName}
-        </h2>
+        {/* Header */}
 
-        <div className="flex gap-6 mt-4 text-gray-400">
+        <div className="mb-8">
 
-          <span>
-            📂 {memory.category}
-          </span>
+          <h2 className="text-4xl font-bold mb-4">
+            {memory.fileName}
+          </h2>
 
-          <span>
-            📝 {memory.wordCount} words
-          </span>
+          <div className="flex flex-wrap gap-4 text-gray-400">
 
-          <span>
-            📅 {formattedDate}
-          </span>
+            <span
+              className="
+                px-3
+                py-1
+                rounded-full
+                bg-blue-500/10
+                text-blue-400
+              "
+            >
+              📂 {memory.category}
+            </span>
 
-        </div>
+            <span>
+              📝 {memory.wordCount} words
+            </span>
 
-        <div className="mt-10">
+            <span>
+              📅 {formattedDate}
+            </span>
 
-          <h3 className="text-2xl font-semibold mb-4">
-            Extracted Text
-          </h3>
-
-          <div
-            className="
-              bg-zinc-900
-              rounded-xl
-              p-6
-              whitespace-pre-wrap
-              leading-7
-            "
-          >
-            {memory.extractedText || (
-              <span className="text-gray-500">
-                No text extracted.
-              </span>
-            )}
           </div>
 
         </div>
 
-        <div className="mt-10">
+        {/* AI Insights */}
+
+        <div
+          className="
+            bg-zinc-900
+            border
+            border-zinc-800
+            rounded-2xl
+            p-6
+            mb-8
+          "
+        >
+
+          <h3 className="text-2xl font-bold mb-6">
+            🧠 AI Insights
+          </h3>
+
+          <div className="mb-6">
+
+            <h4 className="text-zinc-400 mb-2">
+              Summary
+            </h4>
+
+            <p className="leading-7 text-gray-300">
+              {memory.summary ||
+                "No AI summary available."}
+            </p>
+
+          </div>
+
+          <div className="mb-6">
+
+            <h4 className="text-zinc-400 mb-2">
+              Category
+            </h4>
+
+            <span
+              className="
+                inline-flex
+                rounded-full
+                bg-blue-600/10
+                px-4
+                py-2
+                text-blue-400
+                font-medium
+              "
+            >
+              {memory.category}
+            </span>
+
+          </div>
+
+          <div>
+
+            <h4 className="text-zinc-400 mb-2">
+              Tags
+            </h4>
+
+            <div className="flex flex-wrap gap-2">
+
+              {memory.tags?.length ? (
+
+                memory.tags.map((tag) => (
+
+                  <span
+                    key={tag}
+                    className="
+                      rounded-full
+                      bg-zinc-800
+                      px-3
+                      py-1
+                      text-sm
+                      border
+                      border-zinc-700
+                    "
+                  >
+                    #{tag}
+                  </span>
+
+                ))
+
+              ) : (
+
+                <span className="text-gray-500">
+                  No tags generated.
+                </span>
+
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Extracted Text */}
+
+        <div
+          className="
+            bg-zinc-900
+            border
+            border-zinc-800
+            rounded-2xl
+            p-6
+            mb-10
+          "
+        >
+
+          <h3 className="text-2xl font-bold mb-5">
+            📄 Extracted Text
+          </h3>
+
+          <div
+            className="
+              max-h-[500px]
+              overflow-y-auto
+              whitespace-pre-wrap
+              leading-7
+              text-gray-300
+            "
+          >
+            {memory.extractedText ||
+              "No extracted text available."}
+          </div>
+
+        </div>
+
+                {/* Danger Zone */}
+
+        <div
+          className="
+            border
+            border-red-900/40
+            bg-red-950/10
+            rounded-2xl
+            p-6
+            mb-10
+          "
+        >
+
+          <h3 className="text-xl font-bold text-red-400 mb-2">
+            Danger Zone
+          </h3>
+
+          <p className="text-gray-400 mb-6">
+            Deleting this memory will permanently remove the
+            uploaded file and all AI generated information.
+            This action cannot be undone.
+          </p>
 
           <button
             onClick={handleDelete}
             className="
               bg-red-600
               hover:bg-red-700
+              transition
               px-6
               py-3
-              rounded-lg
+              rounded-xl
               font-semibold
-              transition
             "
           >
             Delete Memory
