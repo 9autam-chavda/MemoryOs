@@ -3,16 +3,31 @@ import shutil
 import tempfile
 
 from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
 
 from models.whisper import transcribe
+from ai.analyzer import analyze
 
 app = FastAPI(title="MemoryOS AI Service")
+
+
+class AnalyzeRequest(BaseModel):
+    text: str
 
 
 @app.get("/")
 def home():
     return {
         "status": "MemoryOS AI Service Running"
+    }
+
+
+@app.post("/analyze")
+def analyze_text(request: AnalyzeRequest):
+
+    return {
+        "success": True,
+        **analyze(request.text)
     }
 
 
@@ -40,5 +55,4 @@ async def transcribe_audio(file: UploadFile = File(...)):
         }
 
     finally:
-
         os.remove(temp_path)

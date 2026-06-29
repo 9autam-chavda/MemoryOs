@@ -24,17 +24,36 @@ const deleteMemory = async (id) => {
   return response.data;
 };
 
-const uploadMemory = async (formData) => {
+const uploadMemory = async (
+  formData,
+  onProgress
+) => {
+
   const response = await axios({
     method: "post",
     url: "http://localhost:5000/api/memory/upload",
     data: formData,
     headers: {
       Authorization: `Bearer ${getToken()}`
+    },
+
+    onUploadProgress: (event) => {
+
+      if (!event.total) return;
+
+      const progress = Math.round(
+        (event.loaded * 100) /
+        event.total
+      );
+
+      onProgress?.(progress);
+
     }
+
   });
 
   return response.data;
+
 };
 
 const searchMemories = async (query, fileType = "all") => {

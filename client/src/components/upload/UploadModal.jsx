@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import memoryService from "../../services/memory.service";
+import useUpload from "../../hooks/useUpload";
 
 function UploadModal({
   isOpen,
@@ -12,41 +12,31 @@ function UploadModal({
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleUpload = async () => {
+  const { addUpload } = useUpload();
 
-    if (!file) {
-      toast.error("Please choose a file.");
-      return;
-    }
+  const handleUpload = () => {
 
-    try {
+  if (!file) {
 
-      setLoading(true);
+    toast.error("Please choose a file.");
 
-      const formData = new FormData();
-      formData.append("file", file);
+    return;
 
-      await memoryService.uploadMemory(formData);
+  }
 
-      toast.success("Memory uploaded successfully!");
+  addUpload(file, () => {
 
-      setFile(null);
+    toast.success("Memory uploaded successfully!");
 
-      onUploadSuccess();
+    onUploadSuccess();
 
-    } catch (error) {
+  });
 
-      toast.error(
-        error.response?.data?.message || "Upload failed."
-      );
+  setFile(null);
 
-    } finally {
+  onClose();
 
-      setLoading(false);
-
-    }
-
-  };
+};
 
   const handleClose = () => {
     setFile(null);

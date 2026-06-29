@@ -1,5 +1,6 @@
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import UploadManager from "../upload/UploadManager";
 
 function AppLayout({ children }) {
   return (
@@ -16,6 +17,8 @@ function AppLayout({ children }) {
         </main>
 
       </div>
+
+      <UploadManager />
 
     </div>
   );

@@ -21,10 +21,9 @@ const extract = async (file) => {
     }
   );
 
-    console.log("AI Response:", response.data);
+
 
   const text = response.data.text || "";
-  console.log("Extracted Text:", text);
   return {
     extractedText: text,
     wordCount: text ? text.split(/\s+/).length : 0,

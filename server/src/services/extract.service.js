@@ -4,34 +4,60 @@ const audioExtractor = require("./extractors/audio.extractor");
 const videoExtractor = require("./extractors/video.extractor");
 const textExtractor = require("./extractors/text.extractor");
 
+const aiService = require("./ai.service");
+
 const extractText = async (file) => {
 
   const mimeType = file.mimetype;
 
+  let result;
+
   if (mimeType.startsWith("image/")) {
-    return await imageExtractor.extract(file);
-  }
 
-  if (mimeType === "application/pdf") {
-    return await pdfExtractor.extract(file);
-  }
+    result = await imageExtractor.extract(file);
 
-  if (mimeType.startsWith("audio/")) {
-    return await audioExtractor.extract(file);
-  }
+  } else if (mimeType === "application/pdf") {
 
-  if (mimeType.startsWith("video/")) {
-    return await videoExtractor.extract(file);
-  }
+    result = await pdfExtractor.extract(file);
 
-  if (
+  } else if (mimeType.startsWith("audio/")) {
+
+    result = await audioExtractor.extract(file);
+
+  } else if (mimeType.startsWith("video/")) {
+
+    result = await videoExtractor.extract(file);
+
+  } else if (
     mimeType === "text/plain" ||
     mimeType === "text/markdown"
   ) {
-    return await textExtractor.extract(file);
+
+    result = await textExtractor.extract(file);
+
+  } else {
+
+    throw new Error(
+      `Unsupported file type: ${mimeType}`
+    );
+
   }
 
-  throw new Error(`Unsupported file type: ${mimeType}`);
+  const ai = await aiService.analyzeText(
+    result.extractedText
+  );
+
+  return {
+
+    ...result,
+
+    summary: ai.summary,
+
+    category: ai.category,
+
+    tags: ai.tags
+
+  };
 
 };
 

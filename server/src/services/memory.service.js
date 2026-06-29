@@ -69,6 +69,12 @@ const uploadMemory = async (file, userId) => {
 
     wordCount: extractedData.wordCount,
 
+    summary: extractedData.summary,
+
+    category: extractedData.category,
+
+    tags: extractedData.tags,
+
     metadata: {
       size: file.size,
       mimeType: file.mimetype,
@@ -162,6 +168,8 @@ const getMemoryById = async (memoryId, userId) => {
     extractedText: memory.extractedText,
 
     wordCount: memory.wordCount,
+
+    summary: memory.summary,
 
     category: memory.category,
 
