@@ -1,4 +1,4 @@
-from ai.models import tokenizer, model
+from ai.model_manager import model_manager
 
 
 def summarize(text: str) -> str:
@@ -10,14 +10,14 @@ def summarize(text: str) -> str:
 
     try:
 
-        inputs = tokenizer(
+        inputs = model_manager.summary_tokenizer(
             text,
             return_tensors="pt",
             truncation=True,
             max_length=1024,
         )
 
-        summary_ids = model.generate(
+        summary_ids = model_manager.summary_model.generate(
             **inputs,
             max_length=80,
             min_length=20,
@@ -25,13 +25,13 @@ def summarize(text: str) -> str:
             early_stopping=True,
         )
 
-        return tokenizer.decode(
+        return model_manager.summary_tokenizer.decode(
             summary_ids[0],
             skip_special_tokens=True,
         )
 
     except Exception as e:
 
-        print(e)
+        print(f"Summarization Error: {e}")
 
         return ""
