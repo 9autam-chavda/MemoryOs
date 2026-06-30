@@ -55,7 +55,9 @@ const extractText = async (file) => {
 
     category: ai.category,
 
-    tags: ai.tags
+    tags: ai.tags,
+
+    embedding: ai.embedding
 
   };
 

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from models.whisper import transcribe
 from ai.analyzer import analyze
+from ai.embedding import generate_embedding
 
 app = FastAPI(title="MemoryOS AI Service")
 
@@ -28,6 +29,17 @@ def analyze_text(request: AnalyzeRequest):
     return {
         "success": True,
         **analyze(request.text)
+    }
+
+
+@app.post("/embedding")
+def embedding(request: AnalyzeRequest):
+
+    embedding = generate_embedding(request.text)
+
+    return {
+        "success": True,
+        "embedding": embedding,
     }
 
 

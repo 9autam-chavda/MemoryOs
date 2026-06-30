@@ -1,6 +1,8 @@
 const imagekitService = require("./imagekit.service");
 const extractService = require("./extract.service");
 const MemoryItem = require("../models/MemoryItem");
+const aiService = require("./ai.service");
+const cosineSimilarity = require("../utils/cosineSimilarity");
 
 const toMemoryCard = (memory) => {
   const text = memory.extractedText || "";
@@ -75,6 +77,8 @@ const uploadMemory = async (file, userId) => {
 
     tags: extractedData.tags,
 
+    embedding: extractedData.embedding,
+
     metadata: {
       size: file.size,
       mimeType: file.mimetype,
@@ -126,23 +130,52 @@ const deleteMemory = async (memoryId, userId) => {
 
 const searchMemories = async (userId, query, fileType) => {
 
+  const queryEmbedding =
+    await aiService.generateEmbedding(query);
+
   const filter = {
     userId,
-    extractedText: {
-      $regex: query,
-      $options: "i",
-    },
   };
 
   if (fileType && fileType !== "all") {
     filter.fileType = fileType;
   }
 
-  const memories = await MemoryItem.find(filter).sort({
-    createdAt: -1,
+  const memories = await MemoryItem.find(filter);
+
+  const scoredMemories = memories
+
+  .filter((memory) => {
+    return (
+      memory.embedding &&
+      memory.embedding.length > 0
+    );
+  })
+
+  .map((memory) => {
+
+    const score = cosineSimilarity(
+      queryEmbedding,
+      memory.embedding
+    );
+
+    return {
+      memory,
+      score,
+    };
+
   });
 
-  return memories.map(toMemoryCard);
+  scoredMemories.sort((a, b) => {
+  return b.score - a.score;
+});
+
+  return scoredMemories
+  .slice(0, 5)
+  .map((item) => ({
+    ...toMemoryCard(item.memory),
+    score: item.score,
+  }));
 };
 
 const getMemoryById = async (memoryId, userId) => {
@@ -174,6 +207,8 @@ const getMemoryById = async (memoryId, userId) => {
     category: memory.category,
 
     tags: memory.tags,
+
+    embedding: memory.embedding,
 
     createdAt: memory.createdAt,
   };

@@ -15,6 +15,20 @@ const analyzeText = async (text) => {
 
 };
 
+const generateEmbedding = async (text) => {
+
+  const response = await axios.post(
+    `${AI_BASE_URL}/embedding`,
+    {
+      text,
+    }
+  );
+
+  return response.data.embedding;
+
+};
+
 module.exports = {
   analyzeText,
+  generateEmbedding,
 };

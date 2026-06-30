@@ -62,6 +62,11 @@ const memoryItemSchema = new mongoose.Schema(
       },
     ],
 
+    embedding: {
+      type: [Number],
+      default: [],
+    },
+
     metadata: {
       size: {
         type: Number,
