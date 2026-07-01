@@ -2,6 +2,7 @@ import { createContext, useState } from "react";
 
 import memoryService from "../services/memory.service";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const UploadContext = createContext();
 
 function UploadProvider({ children }) {
@@ -71,7 +72,7 @@ function UploadProvider({ children }) {
         removeUpload(upload.id);
       }, 5000);
 
-    } catch (error) {
+    } catch {
 
       updateUpload(upload.id, {
         status: "failed",

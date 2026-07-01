@@ -46,6 +46,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/library" element={<Gallery />} />
           <Route path="/memory/:id" element={<MemoryDetails />} />
         </Route>
 

@@ -1,4 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { FolderOpen, Home, Library, LogOut, Search, Settings } from "lucide-react";
+
 import { useAuth } from "../../contexts/AuthContext";
 
 function Sidebar() {
@@ -11,46 +13,55 @@ function Sidebar() {
   };
 
   const linkClass = ({ isActive }) =>
-    `block px-4 py-3 rounded-lg transition ${
+    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
       isActive
-        ? "bg-blue-600 text-white"
-        : "text-gray-300 hover:bg-zinc-800"
+        ? "bg-white text-zinc-950"
+        : "text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-100"
     }`;
 
   return (
-    <aside className="w-64 bg-zinc-950 border-r border-gray-800 p-4 flex flex-col">
-
-      {/* Navigation */}
-      <nav className="flex flex-col gap-2">
-
-        <NavLink
-          to="/dashboard"
-          className={linkClass}
-        >
-          📊 Dashboard
-        </NavLink>
-
-        <NavLink
-          to="/gallery"
-          className={linkClass}
-        >
-          🖼 Gallery
-        </NavLink>
-
-      </nav>
-
-      {/* Logout Button */}
-      <div className="mt-auto">
-
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-600 hover:bg-red-700 rounded-lg py-3 transition"
-        >
-          Logout
-        </button>
-
+    <aside className="hidden w-60 flex-col border-r border-white/[0.06] bg-[var(--surface-sidebar)] px-3 py-4 lg:flex">
+      <div className="mb-8 px-2">
+        <p className="text-sm font-semibold text-zinc-100">MemoryOS</p>
+        <p className="mt-1 text-xs text-zinc-600">Second Brain</p>
       </div>
 
+      <nav className="flex flex-col gap-1" aria-label="Primary">
+        <NavLink to="/dashboard" className={linkClass}>
+          <Home size={17} />
+          <span>Dashboard</span>
+        </NavLink>
+
+        <NavLink to="/gallery" className={linkClass}>
+          <Search size={17} />
+          <span>Search</span>
+        </NavLink>
+
+        <NavLink to="/library" className={linkClass}>
+          <Library size={17} />
+          <span>Library</span>
+        </NavLink>
+
+        <button type="button" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-white/[0.05] hover:text-zinc-100">
+          <FolderOpen size={17} />
+          <span>Collections</span>
+        </button>
+      </nav>
+
+      <div className="mt-auto space-y-1">
+        <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200">
+          <Settings size={16} />
+          Settings
+        </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-500 transition hover:bg-red-500/10 hover:text-red-300"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

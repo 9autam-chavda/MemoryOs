@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Bookmark, Bot, CalendarDays, CheckCircle2, Copy, Download, FileText, Link2, Network, Share2, Sparkles, Tag, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -8,385 +9,226 @@ import memoryService from "../services/memory.service";
 function MemoryDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [memory, setMemory] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMemory();
-  }, []);
+    const fetchMemory = async () => {
+      try {
+        const response = await memoryService.getMemoryById(id);
+        setMemory(response.data);
+      } catch {
+        toast.error("Failed to load memory.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchMemory = async () => {
-    try {
-      const response = await memoryService.getMemoryById(id);
-      setMemory(response.data);
-    } catch (error) {
-      toast.error("Failed to load memory.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchMemory();
+  }, [id]);
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Delete this memory?"
-    );
-
+    const confirmDelete = window.confirm("Delete this memory?");
     if (!confirmDelete) {
       return;
     }
 
     try {
       await memoryService.deleteMemory(id);
-
-      toast.success("Memory deleted successfully.");
-
+      toast.success("Memory deleted.");
       navigate("/gallery");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete memory.");
     }
   };
 
+  const copySummary = async () => {
+    await navigator.clipboard.writeText(memory.summary || "");
+    toast.success("Summary copied.");
+  };
+
   const formattedDate = memory
-    ? new Date(memory.createdAt).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+    ? new Date(memory.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
     : "";
+
+  const insights = useMemo(() => {
+    if (!memory) {
+      return [];
+    }
+    return [
+      { label: "Processing", value: memory.processingStatus || "completed", icon: CheckCircle2 },
+      { label: "Embeddings", value: memory.embedding?.length ? "Vector ready" : "Pending", icon: Network },
+      { label: "Words", value: (memory.wordCount || 0).toLocaleString("en-IN"), icon: FileText },
+    ];
+  }, [memory]);
+
+  const renderPreview = () => {
+    if (memory.fileType === "image") {
+      return <img src={memory.fileUrl} alt={memory.fileName} className="max-h-[680px] w-full rounded-lg object-contain" />;
+    }
+    if (memory.fileType === "pdf") {
+      return <iframe src={memory.fileUrl} title={memory.fileName} className="h-[680px] w-full rounded-lg border border-white/[0.08] bg-white" />;
+    }
+    if (memory.fileType === "audio") {
+      return (
+        <div className="rounded-lg border border-white/[0.08] bg-white/[0.035] p-5">
+          <audio controls className="w-full">
+            <source src={memory.fileUrl} type={memory.metadata?.mimeType || "audio/mpeg"} />
+          </audio>
+        </div>
+      );
+    }
+    if (memory.fileType === "video") {
+      return (
+        <video controls className="w-full rounded-lg border border-white/[0.08] bg-black">
+          <source src={memory.fileUrl} />
+        </video>
+      );
+    }
+    return (
+      <div className="premium-scrollbar max-h-[680px] overflow-y-auto rounded-lg border border-white/[0.08] bg-[#f5f5f1] p-6 text-zinc-900">
+        <pre className="whitespace-pre-wrap text-sm leading-7">{memory.extractedText || "No extracted text available."}</pre>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex justify-center items-center h-96">
-          <h1 className="text-3xl font-bold">
-            Loading...
-          </h1>
-        </div>
+        <div className="h-64 rounded-lg border border-white/[0.07] bg-white/[0.035]" />
+      </AppLayout>
+    );
+  }
+
+  if (!memory) {
+    return (
+      <AppLayout>
+        <div className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-8 text-zinc-400">Memory not found.</div>
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-
-      <button
-        onClick={() => navigate("/gallery")}
-        className="text-blue-400 hover:text-blue-300 mb-6"
-      >
-        ← Back to Gallery
-      </button>
-
-      <h1 className="text-4xl font-bold mb-8">
-        Memory Details
-      </h1>
-
-      <div className="max-w-6xl mx-auto">
-
-                {/* Preview */}
-
-        {memory.fileType === "image" && (
-          <img
-            src={memory.fileUrl}
-            alt={memory.fileName}
-            className="
-              w-full
-              rounded-2xl
-              border
-              border-zinc-800
-              mb-8
-            "
-          />
-        )}
-
-        {memory.fileType === "pdf" && (
-          <div className="mb-8">
-
-            <iframe
-              src={memory.fileUrl}
-              title={memory.fileName}
-              className="
-                w-full
-                h-[700px]
-                rounded-2xl
-                border
-                border-zinc-800
-              "
-            />
-
-            <a
-              href={memory.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                inline-block
-                mt-4
-                text-blue-400
-                hover:text-blue-300
-              "
-            >
-              📄 Open PDF in New Tab
-            </a>
-
-          </div>
-        )}
-
-        {memory.fileType === "audio" && (
-          <div
-            className="
-              mb-8
-              bg-zinc-900
-              rounded-2xl
-              p-6
-              border
-              border-zinc-800
-            "
-          >
-            <audio controls className="w-full">
-              <source
-                src={memory.fileUrl}
-                type="audio/mpeg"
-              />
-            </audio>
-          </div>
-        )}
-
-        {memory.fileType === "video" && (
-          <div className="mb-8">
-            <video
-              controls
-              className="
-                w-full
-                rounded-2xl
-                border
-                border-zinc-800
-              "
-            >
-              <source src={memory.fileUrl} />
-            </video>
-          </div>
-        )}
-
-        {memory.fileType === "text" && (
-          <div
-            className="
-              mb-8
-              rounded-2xl
-              border
-              border-zinc-800
-              bg-zinc-900
-              p-6
-            "
-          >
-            <pre className="whitespace-pre-wrap text-gray-300">
-              {memory.extractedText}
-            </pre>
-          </div>
-        )}
-
-        {/* Header */}
-
-        <div className="mb-8">
-
-          <h2 className="text-4xl font-bold mb-4">
-            {memory.fileName}
-          </h2>
-
-          <div className="flex flex-wrap gap-4 text-gray-400">
-
-            <span
-              className="
-                px-3
-                py-1
-                rounded-full
-                bg-blue-500/10
-                text-blue-400
-              "
-            >
-              📂 {memory.category}
-            </span>
-
-            <span>
-              📝 {memory.wordCount} words
-            </span>
-
-            <span>
-              📅 {formattedDate}
-            </span>
-
-          </div>
-
-        </div>
-
-        {/* AI Insights */}
-
-        <div
-          className="
-            bg-zinc-900
-            border
-            border-zinc-800
-            rounded-2xl
-            p-6
-            mb-8
-          "
-        >
-
-          <h3 className="text-2xl font-bold mb-6">
-            🧠 AI Insights
-          </h3>
-
-          <div className="mb-6">
-
-            <h4 className="text-zinc-400 mb-2">
-              Summary
-            </h4>
-
-            <p className="leading-7 text-gray-300">
-              {memory.summary ||
-                "No AI summary available."}
-            </p>
-
-          </div>
-
-          <div className="mb-6">
-
-            <h4 className="text-zinc-400 mb-2">
-              Category
-            </h4>
-
-            <span
-              className="
-                inline-flex
-                rounded-full
-                bg-blue-600/10
-                px-4
-                py-2
-                text-blue-400
-                font-medium
-              "
-            >
-              {memory.category}
-            </span>
-
-          </div>
-
-          <div>
-
-            <h4 className="text-zinc-400 mb-2">
-              Tags
-            </h4>
-
-            <div className="flex flex-wrap gap-2">
-
-              {memory.tags?.length ? (
-
-                memory.tags.map((tag) => (
-
-                  <span
-                    key={tag}
-                    className="
-                      rounded-full
-                      bg-zinc-800
-                      px-3
-                      py-1
-                      text-sm
-                      border
-                      border-zinc-700
-                    "
-                  >
-                    #{tag}
-                  </span>
-
-                ))
-
-              ) : (
-
-                <span className="text-gray-500">
-                  No tags generated.
-                </span>
-
-              )}
-
+      <div className="space-y-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate("/gallery")} className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-100" aria-label="Back to gallery">
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-[var(--accent-soft)] px-2 py-1 text-xs font-medium text-blue-200">{memory.category || "Memory"}</span>
+                <span className="rounded-md border border-white/[0.08] px-2 py-1 text-xs uppercase text-zinc-500">{memory.fileType || "file"}</span>
+              </div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">{memory.fileName}</h1>
             </div>
-
           </div>
 
-        </div>
-
-        {/* Extracted Text */}
-
-        <div
-          className="
-            bg-zinc-900
-            border
-            border-zinc-800
-            rounded-2xl
-            p-6
-            mb-10
-          "
-        >
-
-          <h3 className="text-2xl font-bold mb-5">
-            📄 Extracted Text
-          </h3>
-
-          <div
-            className="
-              max-h-[500px]
-              overflow-y-auto
-              whitespace-pre-wrap
-              leading-7
-              text-gray-300
-            "
-          >
-            {memory.extractedText ||
-              "No extracted text available."}
+          <div className="flex flex-wrap gap-2">
+            <a href={memory.fileUrl} download className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-sm text-zinc-300 transition hover:border-white/[0.14] hover:text-white">
+              <Download size={15} /> Download
+            </a>
+            <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-sm text-zinc-300 transition hover:border-white/[0.14] hover:text-white">
+              <Share2 size={15} /> Share
+            </button>
+            <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-sm text-zinc-300 transition hover:border-white/[0.14] hover:text-white">
+              <Bookmark size={15} /> Favorite
+            </button>
+            <button type="button" onClick={handleDelete} className="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300 transition hover:border-red-500/40">
+              <Trash2 size={15} /> Delete
+            </button>
           </div>
-
         </div>
 
-                {/* Danger Zone */}
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_22rem]">
+          <section className="rounded-lg border border-white/[0.07] bg-[var(--surface-panel)] p-4">
+            {renderPreview()}
+          </section>
 
-        <div
-          className="
-            border
-            border-red-900/40
-            bg-red-950/10
-            rounded-2xl
-            p-6
-            mb-10
-          "
-        >
+          <aside className="space-y-4">
+            <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-zinc-100"><Sparkles size={16} className="text-[var(--accent)]" /> AI summary</p>
+                  <p className="mt-1 text-xs text-zinc-500">Generated from extracted content</p>
+                </div>
+                <button type="button" onClick={copySummary} className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-100" aria-label="Copy summary">
+                  <Copy size={15} />
+                </button>
+              </div>
+              <p className="mt-4 text-sm leading-7 text-zinc-300">{memory.summary || "No AI summary available yet."}</p>
+            </section>
 
-          <h3 className="text-xl font-bold text-red-400 mb-2">
-            Danger Zone
-          </h3>
+            <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-zinc-100">AI insights</p>
+              <div className="mt-3 grid gap-2">
+                {insights.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.label} className="flex items-center justify-between rounded-md bg-white/[0.035] px-3 py-2 text-sm">
+                      <span className="flex items-center gap-2 text-zinc-500"><Icon size={14} /> {item.label}</span>
+                      <span className="text-zinc-200">{item.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
 
-          <p className="text-gray-400 mb-6">
-            Deleting this memory will permanently remove the
-            uploaded file and all AI generated information.
-            This action cannot be undone.
-          </p>
-
-          <button
-            onClick={handleDelete}
-            className="
-              bg-red-600
-              hover:bg-red-700
-              transition
-              px-6
-              py-3
-              rounded-xl
-              font-semibold
-            "
-          >
-            Delete Memory
-          </button>
-
+            <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-zinc-100">Metadata</p>
+              <div className="mt-3 space-y-2 text-sm text-zinc-500">
+                <div className="flex items-center justify-between"><span className="flex items-center gap-2"><CalendarDays size={14} /> Created</span><span className="text-zinc-300">{formattedDate}</span></div>
+                <div className="flex items-center justify-between"><span>MIME</span><span className="max-w-36 truncate text-zinc-300">{memory.metadata?.mimeType || "Unknown"}</span></div>
+                <div className="flex items-center justify-between"><span>Size</span><span className="text-zinc-300">{memory.metadata?.size ? `${Math.round(memory.metadata.size / 1024)} KB` : "Unknown"}</span></div>
+              </div>
+            </section>
+          </aside>
         </div>
 
+        <div className="grid gap-5 xl:grid-cols-[1fr_22rem]">
+          <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-100">Extracted text</p>
+                <p className="mt-1 text-sm text-zinc-500">OCR or speech recognition output used for retrieval.</p>
+              </div>
+              <Bot size={18} className="text-zinc-500" />
+            </div>
+            <div className="premium-scrollbar mt-4 max-h-[360px] overflow-y-auto rounded-lg bg-zinc-950 p-4 text-sm leading-7 text-zinc-300">
+              {memory.extractedText || "No extracted text available."}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+            <p className="text-sm font-semibold text-zinc-100">Related memories</p>
+            <p className="mt-1 text-sm leading-6 text-zinc-500">Semantic similarity recommendations will appear here after the recommendation layer is enabled.</p>
+            <div className="mt-4 space-y-2">
+              {["Shared tags", "Similar concepts", "Same project"].map((item) => (
+                <div key={item} className="flex items-center justify-between rounded-md border border-dashed border-white/[0.09] px-3 py-2 text-sm text-zinc-500">
+                  <span className="flex items-center gap-2"><Link2 size={14} /> {item}</span>
+                  <span>Pending</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+          <p className="text-sm font-semibold text-zinc-100">Tags</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {memory.tags?.length ? (
+              memory.tags.map((tag) => (
+                <span key={tag} className="inline-flex items-center gap-2 rounded-md bg-white/[0.045] px-2.5 py-1.5 text-sm text-zinc-400">
+                  <Tag size={13} /> {tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-zinc-500">No tags generated.</span>
+            )}
+          </div>
+        </section>
       </div>
-
     </AppLayout>
   );
 }
