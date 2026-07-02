@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Library, LogOut, Search, Settings } from "lucide-react";
+import { Home, LogOut, Search, Settings } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -36,15 +36,14 @@ function Sidebar() {
           <Search size={17} />
           <span>Search</span>
         </NavLink>
-
-        <NavLink to="/library" className={linkClass}>
-          <Library size={17} />
-          <span>Library</span>
-        </NavLink>
       </nav>
 
       <div className="mt-auto space-y-1">
-        <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200">
+        <button
+          type="button"
+          onClick={() => navigate("/settings")}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
+        >
           <Settings size={16} />
           Settings
         </button>

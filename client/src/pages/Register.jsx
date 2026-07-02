@@ -155,27 +155,27 @@ function Register() {
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
               <label className="mb-2 block text-sm text-zinc-400" htmlFor="name">Full name</label>
-              <InputField id="name" name="name" label="Your full name" value={form.name} onChange={handleChange} onBlur={handleBlur} autoComplete="name" disabled={loading} required />
-              {touched.name && errors.name && <p className="mt-2 text-xs text-red-400">{errors.name}</p>}
+              <InputField id="name" name="name" label="Your full name" value={form.name} onChange={handleChange} onBlur={handleBlur} autoComplete="name" disabled={loading} required invalid={touched.name && !!errors.name} />
+              {touched.name && errors.name && <p className="mt-2 text-xs text-red-400" role="alert">{errors.name}</p>}
             </div>
 
             <div>
               <label className="mb-2 block text-sm text-zinc-400" htmlFor="email">Email</label>
-              <InputField id="email" name="email" label="you@example.com" type="email" value={form.email} onChange={handleChange} onBlur={handleBlur} autoComplete="email" disabled={loading} required />
-              {touched.email && errors.email && <p className="mt-2 text-xs text-red-400">{errors.email}</p>}
+              <InputField id="email" name="email" label="you@example.com" type="email" value={form.email} onChange={handleChange} onBlur={handleBlur} autoComplete="email" disabled={loading} required invalid={touched.email && !!errors.email} />
+              {touched.email && errors.email && <p className="mt-2 text-xs text-red-400" role="alert">{errors.email}</p>}
             </div>
 
             <div>
               <label className="mb-2 block text-sm text-zinc-400" htmlFor="password">Password</label>
-              <PasswordInput id="password" name="password" label="Create a password" value={form.password} onChange={handleChange} onBlur={handleBlur} autoComplete="new-password" show={showPwd} onToggleShow={() => setShowPwd((s) => !s)} disabled={loading} />
+              <PasswordInput id="password" name="password" label="Create a password" value={form.password} onChange={handleChange} onBlur={handleBlur} autoComplete="new-password" show={showPwd} onToggleShow={() => setShowPwd((s) => !s)} disabled={loading} invalid={touched.password && !!errors.password} />
               <PasswordStrength password={form.password} />
-              {touched.password && errors.password && <p className="mt-2 text-xs text-red-400">{errors.password}</p>}
+              {touched.password && errors.password && <p className="mt-2 text-xs text-red-400" role="alert">{errors.password}</p>}
             </div>
 
             <div>
               <label className="mb-2 block text-sm text-zinc-400" htmlFor="confirm">Confirm password</label>
-              <PasswordInput id="confirm" name="confirm" label="Repeat password" value={form.confirm} onChange={handleChange} onBlur={handleBlur} autoComplete="new-password" show={showConfirm} onToggleShow={() => setShowConfirm((s) => !s)} disabled={loading} />
-              {touched.confirm && errors.confirm && <p className="mt-2 text-xs text-red-400">{errors.confirm}</p>}
+              <PasswordInput id="confirm" name="confirm" label="Repeat password" value={form.confirm} onChange={handleChange} onBlur={handleBlur} autoComplete="new-password" show={showConfirm} onToggleShow={() => setShowConfirm((s) => !s)} disabled={loading} invalid={touched.confirm && !!errors.confirm} />
+              {touched.confirm && errors.confirm && <p className="mt-2 text-xs text-red-400" role="alert">{errors.confirm}</p>}
             </div>
 
             <button

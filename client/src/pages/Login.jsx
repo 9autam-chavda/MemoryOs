@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brain, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import { useAuth } from "../contexts/AuthContext";
 import authService from "../services/auth.service";
@@ -13,6 +14,11 @@ function Login() {
     email: "",
     password: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    document.title = "Login · MemoryOS";
+  }, []);
 
   const handleChange = (event) => {
     setFormData({
@@ -24,12 +30,20 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!formData.email || !formData.password) {
+      toast.error("Enter your email and password.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const response = await authService.login(formData);
       login(response.token, response.user);
       navigate("/dashboard");
     } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+      toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -73,8 +87,12 @@ function Login() {
               <input id="password" type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleChange} className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-100 outline-none transition focus:border-blue-500/40" />
             </div>
 
-            <button type="submit" className="w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
-              Sign in
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition ${submitting ? "cursor-not-allowed opacity-70" : "hover:bg-blue-500"}`}
+            >
+              {submitting ? "Signing in..." : "Sign in"}
             </button>
           </form>
 

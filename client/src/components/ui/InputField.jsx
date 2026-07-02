@@ -1,6 +1,6 @@
 import React from "react";
 
-const InputField = ({ id, label, type = "text", value, onChange, name, autoComplete, disabled, required, onBlur, ...rest }) => {
+const InputField = ({ id, label, type = "text", value, onChange, name, autoComplete, disabled, required, onBlur, invalid, ...rest }) => {
   return (
     <div className="relative">
       <input
@@ -14,6 +14,8 @@ const InputField = ({ id, label, type = "text", value, onChange, name, autoCompl
         autoComplete={autoComplete}
         required={required}
         placeholder=" "
+        aria-invalid={invalid ? "true" : "false"}
+        aria-required={required ? "true" : "false"}
         className="peer w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 px-4 py-4 text-sm text-zinc-100 outline-none transition focus:border-blue-500/40"
         {...rest}
       />

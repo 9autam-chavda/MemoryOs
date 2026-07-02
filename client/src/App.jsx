@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
@@ -44,15 +44,16 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/shared/:token" element={<SharedMemory />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/library" element={<Gallery />} />
           <Route path="/memory/:id" element={<MemoryDetails />} />
         </Route>
+
+        <Route path="*" element={<Navigate replace to="/" />} />
 
       </Routes>
     </>

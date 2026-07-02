@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Clock3, FileAudio, FileImage, FileText, Film, Folder, LoaderCircle, Search, Upload, Heart } from "lucide-react";
+import { Clock3, FileAudio, FileImage, FileText, Film, Folder, LoaderCircle, Search, Upload, Heart } from "lucide-react";
 
 import AppLayout from "../components/layout/AppLayout";
 import MemoryGrid from "../components/memory/MemoryGrid";
@@ -14,6 +14,10 @@ function Gallery() {
   const [search, setSearch] = useState("");
   const [fileType, setFileType] = useState("all");
   const firstLoadRef = useRef(true);
+
+  useEffect(() => {
+    document.title = search ? `Search · MemoryOS` : `Library · MemoryOS`;
+  }, [search]);
   const [recentSearches, setRecentSearches] = useState(() => {
     const stored = localStorage.getItem("memoryos-recent-searches");
     return stored ? JSON.parse(stored) : [];
@@ -121,7 +125,7 @@ function Gallery() {
             <p className="mt-3 text-sm leading-6 text-zinc-400">Search by meaning across extracted text, summaries, and metadata.</p>
           </div>
 
-          <form onSubmit={handleSearchSubmit} className="mx-auto mt-7 max-w-3xl">
+          <form onSubmit={handleSearchSubmit} className="mx-auto mt-7 max-w-3xl" aria-label="Search memories">
             <div className="flex items-center gap-3 rounded-[1.5rem] border border-white/[0.08] bg-zinc-950/80 px-4 py-4">
               <Search size={18} className="text-zinc-500" />
               <input
@@ -129,6 +133,7 @@ function Gallery() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="What did I save about machine learning?"
+                aria-label="Search memories"
                 className="min-w-0 flex-1 bg-transparent text-base text-zinc-100 outline-none placeholder:text-zinc-600"
               />
               {searchLoading && <LoaderCircle size={17} className="animate-spin text-[var(--accent)]" />}
@@ -155,6 +160,7 @@ function Gallery() {
                     key={filter.value}
                     type="button"
                     onClick={() => setFileType(filter.value)}
+                    aria-pressed={fileType === filter.value}
                     className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition ${
                       fileType === filter.value ? "bg-white text-zinc-950" : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-200"
                     }`}
@@ -182,7 +188,12 @@ function Gallery() {
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => setIsUploadOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-zinc-200 transition hover:bg-white/[0.08]">
+            <button
+              type="button"
+              onClick={() => setIsUploadOpen(true)}
+              aria-label="Upload memory"
+              className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-zinc-200 transition hover:bg-white/[0.08]"
+            >
               <Upload size={15} />
               Upload memory
             </button>

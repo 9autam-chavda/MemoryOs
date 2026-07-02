@@ -11,6 +11,8 @@ function SharedMemory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = `Shared memory · MemoryOS`;
+
     const fetch = async () => {
       try {
         const res = await memoryService.getSharedPublic(token);
@@ -42,7 +44,7 @@ function SharedMemory() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout hideNavigation hideUploadManager>
       <div className="mx-auto max-w-4xl space-y-6 py-8">
         <div className="rounded-2xl border border-white/[0.06] bg-[var(--surface-panel)] p-6">
           <h1 className="text-2xl font-semibold text-zinc-100">{memory.fileName}</h1>
@@ -50,26 +52,28 @@ function SharedMemory() {
         </div>
 
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6">
-          <div className="rounded-lg overflow-hidden bg-white">
-            {/* Basic preview */}
+          <div className="rounded-xl overflow-hidden bg-zinc-950 text-zinc-100 shadow-sm">
             {memory.fileType === "image" ? (
               <img src={memory.fileUrl} alt={memory.fileName} className="w-full object-contain" />
             ) : (
-              <pre className="whitespace-pre-wrap">{memory.summary || "No summary available."}</pre>
+              <div className="p-5">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">{memory.summary || "No summary available."}</p>
+              </div>
             )}
           </div>
 
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold text-zinc-100">Summary</h3>
-            <p className="mt-2 text-sm text-zinc-400">{memory.summary || "No summary available."}</p>
-          </div>
-
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold text-zinc-100">Tags</h3>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {memory.tags?.length ? memory.tags.map((t) => (
-                <span key={t} className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-3 py-1.5 text-sm text-zinc-400">{t}</span>
-              )) : <span className="text-sm text-zinc-500">No tags</span>}
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-100">Summary</h3>
+              <p className="mt-2 text-sm text-zinc-400">{memory.summary || "No summary available."}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-100">Tags</h3>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {memory.tags?.length ? memory.tags.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-3 py-1.5 text-sm text-zinc-400">{t}</span>
+                )) : <span className="text-sm text-zinc-500">No tags</span>}
+              </div>
             </div>
           </div>
         </div>

@@ -13,6 +13,8 @@ const toMemoryCard = (memory) => {
     fileUrl: memory.fileUrl,
     fileType: memory.fileType,
     category: memory.category,
+    isFavorite: !!memory.isFavorite,
+    shareEnabled: !!memory.shareEnabled,
     wordCount: memory.wordCount,
     createdAt: memory.createdAt,
     preview:
@@ -214,6 +216,10 @@ const getMemoryById = async (memoryId, userId) => {
     tags: memory.tags,
 
     embedding: memory.embedding,
+
+    isFavorite: !!memory.isFavorite,
+    shareEnabled: !!memory.shareEnabled,
+    shareToken: memory.shareToken,
 
     createdAt: memory.createdAt,
   };

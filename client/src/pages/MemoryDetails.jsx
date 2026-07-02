@@ -17,6 +17,8 @@ function MemoryDetails() {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
+    document.title = "Memory details · MemoryOS";
+
     const fetchMemory = async () => {
       try {
         const response = await memoryService.getMemoryById(id);
@@ -64,6 +66,30 @@ function MemoryDetails() {
     setShareInfo(memory.shareToken ? { shareToken: memory.shareToken, shareEnabled: memory.shareEnabled } : null);
   };
 
+  // focus management for share modal
+  useEffect(() => {
+    if (!shareModalOpen) return;
+
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setShareModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKey);
+
+    // focus first focusable element inside modal after open
+    const t = setTimeout(() => {
+      const el = document.querySelector(".share-modal input, .share-modal button");
+      if (el) el.focus();
+    }, 0);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      clearTimeout(t);
+    };
+  }, [shareModalOpen]);
+
   const handleCreateShare = async () => {
     try {
       const res = await memoryService.createShare(id);
@@ -98,8 +124,16 @@ function MemoryDetails() {
   };
 
   const copySummary = async () => {
-    await navigator.clipboard.writeText(memory.summary || "");
-    toast.success("Summary copied.");
+    const summary = memory.summary || "";
+    if (!summary) {
+      return toast.error("No summary available to copy.");
+    }
+    try {
+      await navigator.clipboard.writeText(summary);
+      toast.success("Summary copied.");
+    } catch {
+      toast.error("Unable to copy summary.");
+    }
   };
 
   const formattedDate = memory
@@ -313,12 +347,19 @@ function MemoryDetails() {
         </section>
       </div>
       {shareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-2xl rounded-2xl bg-white p-6 text-zinc-900 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="presentation" onClick={() => setShareModalOpen(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-modal-title"
+            aria-describedby="share-modal-description"
+            className="share-modal mx-4 w-full max-w-2xl rounded-2xl bg-white p-6 text-zinc-900 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Share memory</h3>
-                <p className="mt-1 text-sm text-zinc-500">Create a secure, read-only link to share this memory.</p>
+                <h3 id="share-modal-title" className="text-lg font-semibold">Share memory</h3>
+                <p id="share-modal-description" className="mt-1 text-sm text-zinc-500">Create a secure, read-only link to share this memory.</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShareModalOpen(false)} className="text-sm text-zinc-500">Close</button>

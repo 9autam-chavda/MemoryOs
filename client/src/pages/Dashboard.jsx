@@ -15,6 +15,14 @@ function Dashboard() {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
+    document.title = "Dashboard · MemoryOS";
+  }, []);
+
+  useEffect(() => {
+    document.title = "Dashboard · MemoryOS";
+  }, []);
+
+  useEffect(() => {
     const fetchMemories = async () => {
       try {
         const response = await memoryService.getMemories();
@@ -64,13 +72,14 @@ function Dashboard() {
             </button>
           </div>
 
-          <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-3 sm:flex-row" aria-label="Dashboard search">
             <div className="flex flex-1 items-center gap-3 rounded-2xl border border-white/[0.07] bg-zinc-950/70 px-4 py-3">
               <Search size={18} className="text-zinc-500" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search across notes, documents, screenshots, and audio"
+                aria-label="Search memories"
                 className="min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-600"
               />
             </div>
