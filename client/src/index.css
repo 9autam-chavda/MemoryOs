@@ -22,6 +22,26 @@
   color: var(--text-primary);
 }
 
+/* Light theme overrides */
+.light {
+  --surface-canvas: #f6f7fb;
+  --surface-sidebar: #ffffff;
+  --surface-panel: #ffffff;
+  --surface-panel-raised: #ffffff;
+  --surface-muted: #f3f4f6;
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-strong: rgba(0,0,0,0.12);
+  --text-primary: #0b1220;
+  --text-secondary: #475569;
+  --text-tertiary: #6b7280;
+  --accent: #2563eb;
+  --accent-soft: rgba(37,99,235,0.08);
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #ef4444;
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }

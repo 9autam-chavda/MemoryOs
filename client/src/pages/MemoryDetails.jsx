@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Copy, Download, FileText, Network, Share2, Sparkles, Tag, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, Copy, Download, FileText, Network, Share2, Sparkles, Tag, Trash2, Heart } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -11,6 +11,9 @@ function MemoryDetails() {
   const navigate = useNavigate();
   const [memory, setMemory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFav, setIsFav] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareInfo, setShareInfo] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
@@ -18,6 +21,7 @@ function MemoryDetails() {
       try {
         const response = await memoryService.getMemoryById(id);
         setMemory(response.data);
+        setIsFav(!!response.data.isFavorite);
       } catch {
         toast.error("Failed to load memory.");
       } finally {
@@ -40,6 +44,56 @@ function MemoryDetails() {
       navigate("/gallery");
     } catch {
       toast.error("Failed to delete memory.");
+    }
+  };
+
+  const toggleFavorite = async () => {
+    setIsFav((s) => !s);
+    try {
+      const res = await memoryService.toggleFavorite(id);
+      const msg = res.message || (res.data?.isFavorite ? "Added to favorites" : "Removed from favorites");
+      toast.success(msg);
+    } catch {
+      setIsFav((s) => !s);
+      toast.error("Failed to update favorite");
+    }
+  };
+
+  const openShare = () => {
+    setShareModalOpen(true);
+    setShareInfo(memory.shareToken ? { shareToken: memory.shareToken, shareEnabled: memory.shareEnabled } : null);
+  };
+
+  const handleCreateShare = async () => {
+    try {
+      const res = await memoryService.createShare(id);
+      setShareInfo({ shareToken: res.data.shareToken, shareEnabled: true });
+      setMemory((m) => ({ ...m, shareToken: res.data.shareToken, shareEnabled: true }));
+      toast.success("Share link generated");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create share link");
+    }
+  };
+
+  const handleDisableShare = async () => {
+    try {
+      await memoryService.disableShare(id);
+      setShareInfo(null);
+      setMemory((m) => ({ ...m, shareToken: undefined, shareEnabled: false }));
+      toast.success("Sharing disabled");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to disable sharing");
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!shareInfo?.shareToken) return toast.error("No share link available");
+    const link = `${window.location.origin}/shared/${shareInfo.shareToken}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Share link copied");
+    } catch {
+      toast.error("Failed to copy link to clipboard");
     }
   };
 
@@ -136,8 +190,11 @@ function MemoryDetails() {
             <a href={memory.fileUrl} download className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/[0.06] hover:text-white">
               <Download size={15} /> Download
             </a>
-            <button type="button" className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/[0.06] hover:text-white">
+            <button type="button" onClick={openShare} className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/[0.06] hover:text-white">
               <Share2 size={15} /> Share
+            </button>
+            <button type="button" onClick={toggleFavorite} className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/[0.06] hover:text-white">
+              <Heart size={15} className={isFav ? "text-red-400" : "text-zinc-300"} /> {isFav ? "Favorited" : "Favorite"}
             </button>
             <button type="button" onClick={handleDelete} className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300 transition hover:border-red-500/40">
               <Trash2 size={15} /> Delete
@@ -255,6 +312,39 @@ function MemoryDetails() {
           </div>
         </section>
       </div>
+      {shareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-2xl rounded-2xl bg-white p-6 text-zinc-900 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Share memory</h3>
+                <p className="mt-1 text-sm text-zinc-500">Create a secure, read-only link to share this memory.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShareModalOpen(false)} className="text-sm text-zinc-500">Close</button>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="rounded-lg border border-zinc-200 bg-white/[0.02] p-4">
+                {shareInfo?.shareToken ? (
+                  <div className="flex items-center gap-3">
+                    <input readOnly value={`${window.location.origin}/shared/${shareInfo.shareToken}`} className="flex-1 rounded-md bg-transparent px-3 py-2 text-sm text-zinc-300 outline-none" />
+                    <button onClick={copyShareLink} className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white">Copy</button>
+                    <button onClick={handleCreateShare} className="rounded-md bg-white/5 px-3 py-2 text-sm text-zinc-100">Regenerate</button>
+                    <button onClick={handleDisableShare} className="rounded-md bg-red-600 px-3 py-2 text-sm text-white">Disable</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button onClick={handleCreateShare} className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white">Create share link</button>
+                    <button onClick={() => setShareModalOpen(false)} className="rounded-md bg-white/5 px-3 py-2 text-sm text-zinc-100">Cancel</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

@@ -32,6 +32,7 @@ function Dashboard() {
   const recentMemories = memories.slice(0, 6);
   const pinnedMemories = memories.filter((memory) => memory.isPinned).slice(0, 3);
   const continueMemory = recentMemories[0];
+  const favoriteCount = memories.filter((m) => m.isFavorite).length;
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -90,6 +91,20 @@ function Dashboard() {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[1fr_2fr]">
+          <div className="rounded-[1.75rem] border border-white/[0.06] bg-[var(--surface-panel)] p-5">
+            <h3 className="text-sm font-semibold text-zinc-100">Favorites</h3>
+            <p className="mt-3 text-3xl font-bold text-zinc-50">{favoriteCount}</p>
+            {favoriteCount === 0 ? (
+              <div className="mt-4 text-sm text-zinc-500">You haven't saved any memories yet.</div>
+            ) : (
+              <div className="mt-4 text-sm text-zinc-400">Quick access to your saved memories.</div>
+            )}
+          </div>
+
+          <div />
         </section>
 
         {loading ? (

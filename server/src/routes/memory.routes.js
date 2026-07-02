@@ -43,4 +43,25 @@ router.delete(
   memoryController.deleteMemory
 );
 
+// Toggle favorite
+router.patch(
+  "/:id/favorite",
+  protect,
+  memoryController.toggleFavorite
+);
+
+// Create share link
+router.post(
+  "/:id/share",
+  protect,
+  memoryController.createShare
+);
+
+// Disable share
+router.delete(
+  "/:id/share",
+  protect,
+  memoryController.disableShare
+);
+
 module.exports = router;

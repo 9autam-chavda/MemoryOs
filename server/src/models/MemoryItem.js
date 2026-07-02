@@ -103,6 +103,22 @@ const memoryItemSchema = new mongoose.Schema(
       ],
       default: "completed",
     },
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Sharing fields
+    shareEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    shareToken: {
+      type: String,
+    },
+    sharedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

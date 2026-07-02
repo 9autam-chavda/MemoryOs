@@ -10,6 +10,7 @@ const memoryRoutes =
   require(
     "./routes/memory.routes"
   );
+const sharedRoutes = require("./routes/shared.routes");
 
 const app = express();
 
@@ -36,6 +37,11 @@ app.use(
 app.use(
   "/api/memory",
   memoryRoutes
+);
+
+app.use(
+  "/api/shared",
+  sharedRoutes
 );
 
 

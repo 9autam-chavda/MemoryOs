@@ -3,7 +3,6 @@ import api from "./api";
 import { getToken } from "../utils/token";
 
 const getMemories = async (fileType = "all") => {
-
   const response = await api.get("/memory", {
     params: {
       fileType,
@@ -11,7 +10,6 @@ const getMemories = async (fileType = "all") => {
   });
 
   return response.data;
-
 };
 
 const getMemoryById = async (id) => {
@@ -24,40 +22,28 @@ const deleteMemory = async (id) => {
   return response.data;
 };
 
-const uploadMemory = async (
-  formData,
-  onProgress
-) => {
-
+const uploadMemory = async (formData, onProgress) => {
   const response = await axios({
     method: "post",
     url: "http://localhost:5000/api/memory/upload",
     data: formData,
     headers: {
-      Authorization: `Bearer ${getToken()}`
+      Authorization: `Bearer ${getToken()}`,
     },
 
     onUploadProgress: (event) => {
-
       if (!event.total) return;
 
-      const progress = Math.round(
-        (event.loaded * 100) /
-        event.total
-      );
+      const progress = Math.round((event.loaded * 100) / event.total);
 
       onProgress?.(progress);
-
-    }
-
+    },
   });
 
   return response.data;
-
 };
 
 const searchMemories = async (query, fileType = "all") => {
-
   const response = await api.get("/memory/search", {
     params: {
       q: query,
@@ -66,7 +52,26 @@ const searchMemories = async (query, fileType = "all") => {
   });
 
   return response.data;
+};
 
+const toggleFavorite = async (id) => {
+  const response = await api.patch(`/memory/${id}/favorite`);
+  return response.data;
+};
+
+const createShare = async (id) => {
+  const response = await api.post(`/memory/${id}/share`);
+  return response.data;
+};
+
+const disableShare = async (id) => {
+  const response = await api.delete(`/memory/${id}/share`);
+  return response.data;
+};
+
+const getSharedPublic = async (token) => {
+  const response = await api.get(`/shared/${token}`);
+  return response.data;
 };
 
 export default {
@@ -75,4 +80,8 @@ export default {
   deleteMemory,
   uploadMemory,
   searchMemories,
+  toggleFavorite,
+  createShare,
+  disableShare,
+  getSharedPublic,
 };

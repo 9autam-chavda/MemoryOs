@@ -134,10 +134,42 @@ const getMemoryDetails = async (req, res) => {
   }
 };
 
+
+const toggleFavorite = async (req, res) => {
+  try {
+    const memory = await memoryService.toggleFavorite(req.params.id, req.user.id);
+
+    res.status(200).json({ success: true, data: memory });
+  } catch (error) {
+    res.status(error.status || 400).json({ success: false, message: error.message });
+  }
+};
+
+const createShare = async (req, res) => {
+  try {
+    const result = await memoryService.createShare(req.params.id, req.user.id);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(error.status || 400).json({ success: false, message: error.message });
+  }
+};
+
+const disableShare = async (req, res) => {
+  try {
+    const memory = await memoryService.disableShare(req.params.id, req.user.id);
+    res.status(200).json({ success: true, data: memory });
+  } catch (error) {
+    res.status(error.status || 400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   uploadMemory,
   getMemories,
   deleteMemory,
   searchMemories,
   getMemoryDetails,
+  toggleFavorite,
+  createShare,
+  disableShare,
 };

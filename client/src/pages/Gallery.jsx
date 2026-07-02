@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Clock3, FileAudio, FileImage, FileText, Film, Folder, LoaderCircle, Search, Upload } from "lucide-react";
+import { ArrowRight, Clock3, FileAudio, FileImage, FileText, Film, Folder, LoaderCircle, Search, Upload, Heart } from "lucide-react";
 
 import AppLayout from "../components/layout/AppLayout";
 import MemoryGrid from "../components/memory/MemoryGrid";
@@ -21,6 +21,7 @@ function Gallery() {
 
   const filters = [
     { value: "all", label: "All", icon: Folder },
+    { value: "favorites", label: "Favorites", icon: Heart },
     { value: "image", label: "Images", icon: FileImage },
     { value: "pdf", label: "PDFs", icon: FileText },
     { value: "audio", label: "Audio", icon: FileAudio },

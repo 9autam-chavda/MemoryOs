@@ -7,15 +7,18 @@ import App from "./App";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import UploadProvider from "./contexts/UploadContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <UploadProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </UploadProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <UploadProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </UploadProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

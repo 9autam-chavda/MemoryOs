@@ -85,6 +85,7 @@ const uploadMemory = async (file, userId) => {
     },
 
     isProcessed: true,
+    isFavorite: false,
   });
 
   return memory;
@@ -97,7 +98,11 @@ const getUserMemories = async (userId, fileType) => {
   };
 
   if (fileType && fileType !== "all") {
-    filter.fileType = fileType;
+    if (fileType === "favorites") {
+      filter.isFavorite = true;
+    } else {
+      filter.fileType = fileType;
+    }
   }
 
   const memories = await MemoryItem.find(filter).sort({
@@ -214,10 +219,106 @@ const getMemoryById = async (memoryId, userId) => {
   };
 };
 
+// exports moved to bottom after function definitions
+
+const toggleFavorite = async (memoryId, userId) => {
+  const memory = await MemoryItem.findById(memoryId);
+
+  if (!memory) {
+    throw new Error("Memory not found");
+  }
+
+  if (memory.userId.toString() !== userId) {
+    const err = new Error("Unauthorized");
+    err.status = 403;
+    throw err;
+  }
+
+  memory.isFavorite = !memory.isFavorite;
+  await memory.save();
+
+  return memory;
+};
+
+const createShare = async (memoryId, userId) => {
+  const memory = await MemoryItem.findById(memoryId);
+
+  if (!memory) {
+    throw new Error("Memory not found");
+  }
+
+  if (memory.userId.toString() !== userId) {
+    const err = new Error("Unauthorized");
+    err.status = 403;
+    throw err;
+  }
+
+  // generate secure random token
+  const token = require("crypto").randomBytes(16).toString("hex");
+
+  memory.shareEnabled = true;
+  memory.shareToken = token;
+  memory.sharedAt = new Date();
+
+  await memory.save();
+
+  return {
+    ...toMemoryCard(memory),
+    shareToken: token,
+  };
+};
+
+const disableShare = async (memoryId, userId) => {
+  const memory = await MemoryItem.findById(memoryId);
+
+  if (!memory) {
+    throw new Error("Memory not found");
+  }
+
+  if (memory.userId.toString() !== userId) {
+    const err = new Error("Unauthorized");
+    err.status = 403;
+    throw err;
+  }
+
+  memory.shareEnabled = false;
+  memory.shareToken = undefined;
+  memory.sharedAt = undefined;
+
+  await memory.save();
+
+  return memory;
+};
+
+const getSharedByToken = async (token) => {
+  const memory = await MemoryItem.findOne({ shareToken: token, shareEnabled: true });
+
+  if (!memory) {
+    const err = new Error("Shared memory not found");
+    err.status = 404;
+    throw err;
+  }
+
+  return {
+    id: memory._id,
+    fileName: memory.fileName,
+    fileUrl: memory.fileUrl,
+    fileType: memory.fileType,
+    summary: memory.summary,
+    tags: memory.tags,
+    metadata: memory.metadata,
+    createdAt: memory.createdAt,
+  };
+};
+
 module.exports = {
   uploadMemory,
   getUserMemories,
   deleteMemory,
   searchMemories,
   getMemoryById,
+  toggleFavorite,
+  createShare,
+  disableShare,
+  getSharedByToken,
 };

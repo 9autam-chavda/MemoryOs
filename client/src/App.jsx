@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Gallery from "./pages/Gallery";
 import MemoryDetails from "./pages/MemoryDetails";
+import SharedMemory from "./pages/SharedMemory";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
@@ -41,6 +43,8 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/shared/:token" element={<SharedMemory />} />
+        <Route path="/settings" element={<Settings />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
