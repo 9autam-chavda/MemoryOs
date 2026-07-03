@@ -134,6 +134,26 @@ const getMemoryDetails = async (req, res) => {
   }
 };
 
+const getRelatedMemories = async (req, res) => {
+  try {
+    const memories = await memoryService.getRelatedMemories(
+      req.params.id,
+      req.user.id
+    );
+
+    res.status(200).json({
+      success: true,
+      count: memories.length,
+      data: memories,
+    });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 const toggleFavorite = async (req, res) => {
   try {
@@ -169,6 +189,7 @@ module.exports = {
   deleteMemory,
   searchMemories,
   getMemoryDetails,
+  getRelatedMemories,
   toggleFavorite,
   createShare,
   disableShare,

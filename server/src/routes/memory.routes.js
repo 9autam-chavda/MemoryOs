@@ -31,6 +31,12 @@ router.get(
 );
 
 router.get(
+  "/:id/related",
+  protect,
+  memoryController.getRelatedMemories
+);
+
+router.get(
   "/:id",
   protect,
   memoryController.getMemoryDetails

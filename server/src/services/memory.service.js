@@ -225,6 +225,68 @@ const getMemoryById = async (memoryId, userId) => {
   };
 };
 
+const getRelatedMemories = async (memoryId, userId) => {
+  const memory = await MemoryItem.findById(memoryId);
+
+  if (!memory) {
+    const err = new Error("Memory not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (memory.userId.toString() !== userId) {
+    const err = new Error("Unauthorized");
+    err.status = 403;
+    throw err;
+  }
+
+  if (!Array.isArray(memory.embedding) || memory.embedding.length === 0) {
+    return [];
+  }
+
+  const relatedMemories = await MemoryItem.find(
+    {
+      userId,
+      _id: { $ne: memoryId },
+    },
+    {
+      _id: 1,
+      fileName: 1,
+      summary: 1,
+      category: 1,
+      tags: 1,
+      fileType: 1,
+      fileUrl: 1,
+      createdAt: 1,
+      embedding: 1,
+    }
+  ).lean();
+
+  const scoredMemories = relatedMemories
+    .filter((candidate) => Array.isArray(candidate.embedding) && candidate.embedding.length > 0)
+    .map((candidate) => ({
+      candidate,
+      similarity: cosineSimilarity(memory.embedding, candidate.embedding),
+    }))
+    .filter(({ similarity }) => Number.isFinite(similarity) && similarity >= 0.65)
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, 5)
+    .map(({ candidate, similarity }) => ({
+      id: candidate._id,
+      fileName: candidate.fileName,
+      filename: candidate.fileName,
+      summary: candidate.summary || "",
+      category: candidate.category || "uncategorized",
+      tags: Array.isArray(candidate.tags) ? candidate.tags : [],
+      fileType: candidate.fileType,
+      thumbnail: candidate.fileType === "image" ? candidate.fileUrl : null,
+      createdAt: candidate.createdAt,
+      similarity: Math.round(similarity * 100),
+    }));
+
+  return scoredMemories;
+};
+
 // exports moved to bottom after function definitions
 
 const toggleFavorite = async (memoryId, userId) => {

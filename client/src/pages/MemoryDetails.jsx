@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import AppLayout from "../components/layout/AppLayout";
+import UploadModal from "../components/upload/UploadModal";
+import RelatedMemoryList from "../components/memory/RelatedMemoryList";
 import memoryService from "../services/memory.service";
 
 function MemoryDetails() {
@@ -15,6 +17,9 @@ function MemoryDetails() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareInfo, setShareInfo] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [relatedMemories, setRelatedMemories] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Memory details · MemoryOS";
@@ -31,7 +36,24 @@ function MemoryDetails() {
       }
     };
 
+    const fetchRelated = async () => {
+      if (!id) {
+        return;
+      }
+
+      setRelatedLoading(true);
+      try {
+        const response = await memoryService.getRelatedMemories(id);
+        setRelatedMemories(response.data || []);
+      } catch {
+        setRelatedMemories([]);
+      } finally {
+        setRelatedLoading(false);
+      }
+    };
+
     fetchMemory();
+    fetchRelated();
   }, [id]);
 
   const handleDelete = async () => {
@@ -272,6 +294,17 @@ function MemoryDetails() {
                 </div>
               </div>
             </section>
+
+            <section className="rounded-[1.75rem] border border-white/[0.06] bg-white/[0.03] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">Related memories</p>
+                  <p className="mt-1 text-xs text-zinc-500">Semantic suggestions powered by embeddings</p>
+                </div>
+                <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-medium text-blue-200">AI</span>
+              </div>
+              <RelatedMemoryList memories={relatedMemories} loading={relatedLoading} onUploadClick={() => setIsUploadOpen(true)} />
+            </section>
           </aside>
         </div>
 
@@ -346,6 +379,8 @@ function MemoryDetails() {
           </div>
         </section>
       </div>
+      <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} onUploadSuccess={() => setIsUploadOpen(false)} />
+
       {shareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="presentation" onClick={() => setShareModalOpen(false)}>
           <div

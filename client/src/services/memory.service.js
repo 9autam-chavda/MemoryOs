@@ -17,6 +17,11 @@ const getMemoryById = async (id) => {
   return response.data;
 };
 
+const getRelatedMemories = async (id) => {
+  const response = await api.get(`/memory/${id}/related`);
+  return response.data;
+};
+
 const deleteMemory = async (id) => {
   const response = await api.delete(`/memory/${id}`);
   return response.data;
@@ -77,6 +82,7 @@ const getSharedPublic = async (token) => {
 export default {
   getMemories,
   getMemoryById,
+  getRelatedMemories,
   deleteMemory,
   uploadMemory,
   searchMemories,
