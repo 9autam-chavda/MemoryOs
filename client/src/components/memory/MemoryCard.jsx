@@ -49,7 +49,7 @@ function MemoryCard({ memory }) {
           navigate(`/memory/${memory.id}`);
         }
       }}
-      className="group cursor-pointer overflow-hidden rounded-[1.5rem] border border-white/[0.06] bg-[var(--surface-panel)] text-left transition hover:border-white/[0.12] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+      className="group cursor-pointer overflow-hidden rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-panel)] text-left transition duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--surface-panel-raised)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
     >
       <div className="relative">
         <div className="absolute right-3 top-3 z-10">
@@ -74,25 +74,25 @@ function MemoryCard({ memory }) {
             disabled={toggling}
             aria-pressed={isFavorite}
             aria-label={isFavorite ? "Remove favorite" : "Add to favorites"}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform ${isFavorite ? "bg-red-600/20 text-red-300 shadow-md scale-105" : "bg-white/[0.03] text-zinc-300 hover:scale-105"} ${toggling ? "cursor-wait" : ""}`}
+            className={`flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] transition duration-200 ${isFavorite ? "scale-105 bg-red-600/20 text-red-300 shadow-md" : "bg-white/[0.04] text-zinc-300 hover:scale-105 hover:bg-white/[0.08]"} ${toggling ? "cursor-wait" : ""}`}
           >
-            <Heart className={`transition-colors ${isFavorite ? "text-red-400" : "text-zinc-300"}`} size={18} />
+            <Heart className={`transition-colors ${isFavorite ? "text-red-400" : "text-zinc-300"}`} size={18} strokeWidth={1.8} />
           </button>
         </div>
 
         <div className="relative overflow-hidden">
           {renderPreview()}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-200">{memory.category || "Memory"}</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-200">{memory.category || "Memory"}</span>
           </div>
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <h2 className="line-clamp-2 text-sm font-medium leading-6 text-zinc-100">{memory.fileName}</h2>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">{summary}</p>
-          <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-            <span className="flex items-center gap-1.5"><CalendarDays size={13} /> {createdDate}</span>
-            <span>{memory.fileType || "file"}</span>
+          <h2 className="line-clamp-2 text-sm font-medium leading-6 text-[var(--text-primary)]">{memory.fileName}</h2>
+          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--text-tertiary)]">{summary}</p>
+          <div className="mt-4 flex items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
+            <span className="flex items-center gap-1.5"><CalendarDays size={13} strokeWidth={1.8} /> {createdDate}</span>
+            <span className="truncate">{memory.fileType || "file"}</span>
           </div>
         </div>
       </div>
