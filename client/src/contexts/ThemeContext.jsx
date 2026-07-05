@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext();
 
@@ -36,7 +37,9 @@ export const ThemeProvider = ({ children }) => {
     apply(theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
+    } catch {
+      // Ignore storage failures in private or restricted browser contexts.
+    }
   }, [theme]);
 
   useEffect(() => {

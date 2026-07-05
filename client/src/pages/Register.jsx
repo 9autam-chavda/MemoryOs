@@ -64,7 +64,7 @@ function Register() {
     else if (!emailRegex.test(form.email)) e.email = "Enter a valid email";
 
     const pw = form.password || "";
-    const pwFails = Object.entries(pwChecks).filter(([k, fn]) => !fn(pw)).map(([k]) => k);
+    const pwFails = Object.entries(pwChecks).filter(([, fn]) => !fn(pw)).map(([key]) => key);
     if (pwFails.length) e.password = "Password does not meet requirements";
 
     if (form.confirm !== form.password) e.confirm = "Passwords do not match";

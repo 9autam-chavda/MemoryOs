@@ -1,4 +1,3 @@
-import React from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 const PasswordInput = ({ id, label, value, onChange, name, autoComplete, disabled, show, onToggleShow, onBlur, invalid, ...rest }) => {

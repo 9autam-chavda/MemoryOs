@@ -1,5 +1,3 @@
-import React from "react";
-
 const InputField = ({ id, label, type = "text", value, onChange, name, autoComplete, disabled, required, onBlur, invalid, ...rest }) => {
   return (
     <div className="relative">

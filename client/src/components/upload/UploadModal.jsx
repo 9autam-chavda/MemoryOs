@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileAudio, FileImage, FileText, FileUp, Film, X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -9,6 +9,11 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const { addUpload } = useUpload();
   const fileInputRef = useRef(null);
   const closeButtonRef = useRef(null);
+
+  const handleClose = useCallback(() => {
+    setFile(null);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -27,7 +32,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       document.removeEventListener("keydown", onKeyDown);
       clearTimeout(timer);
     };
-  }, [isOpen]);
+  }, [handleClose, isOpen]);
 
   const handleUpload = () => {
     if (!file) {
@@ -40,11 +45,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       onUploadSuccess();
     });
 
-    setFile(null);
-    onClose();
-  };
-
-  const handleClose = () => {
     setFile(null);
     onClose();
   };
