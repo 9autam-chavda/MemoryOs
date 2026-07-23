@@ -8,6 +8,7 @@ import Gallery from "./pages/Gallery";
 import MemoryDetails from "./pages/MemoryDetails";
 import SharedMemory from "./pages/SharedMemory";
 import Settings from "./pages/Settings";
+import Assistant from "./pages/Assistant";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/assistant" element={<Assistant />} />
           <Route path="/memory/:id" element={<MemoryDetails />} />
         </Route>
 

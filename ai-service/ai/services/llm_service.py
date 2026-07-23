@@ -1,23 +1,24 @@
-from ai.providers.gemini_provider import GeminiProvider
+from ai.providers.provider_factory import ProviderFactory
 from ai.services.prompt_service import PromptService
 
 
 class LLMService:
-    """Builds a prompt and delegates generation to the configured provider."""
 
-    def __init__(
-        self,
-        provider: GeminiProvider | None = None,
-        prompt_service: PromptService | None = None,
-    ) -> None:
-        self.provider = provider or GeminiProvider()
-        self.prompt_service = prompt_service or PromptService()
+    def __init__(self):
+        self.provider = ProviderFactory.get_provider()
+        self.prompt_service = PromptService()
 
     def generate(
         self,
         question: str,
-        context: str,
+        memories: list,
     ) -> str:
-        prompt = self.prompt_service.build(question, context)
 
-        return self.provider.generate(prompt)
+        prompt = self.prompt_service.build(
+            question=question,
+            memories=memories,
+        )
+
+        answer = self.provider.generate(prompt)
+
+        return answer

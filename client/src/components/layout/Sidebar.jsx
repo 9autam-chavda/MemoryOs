@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, LogOut, Search, Settings } from "lucide-react";
+import { Home, LogOut, Search, Settings, Sparkles } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -35,6 +35,11 @@ function Sidebar() {
         <NavLink to="/gallery" className={linkClass}>
           <Search size={17} />
           <span>Search</span>
+        </NavLink>
+
+        <NavLink to="/assistant" className={linkClass}>
+          <Sparkles size={17} />
+          <span>Assistant</span>
         </NavLink>
       </nav>
 

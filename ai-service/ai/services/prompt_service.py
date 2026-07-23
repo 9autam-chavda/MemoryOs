@@ -1,30 +1,32 @@
+from ai.services.context_builder import ContextBuilder
+
+
 class PromptService:
 
-    def build(
-        self,
-        question: str,
-        context: str
-    ) -> str:
+    def __init__(self):
+        self.context_builder = ContextBuilder()
+
+    def build(self, question, memories):
+
+        context = self.context_builder.build(memories)
 
         return f"""
-You are MemoryOS.
+You are MemoryOS Assistant.
 
-You answer ONLY using the memories provided.
+Answer ONLY using the provided memories.
 
-Rules:
+If the answer cannot be found,
+say so.
 
-- Never invent information.
-- If the answer is unavailable,
-  clearly say you couldn't find it.
-- Mention the source filenames.
-- Be concise.
-- Respond using Markdown.
+------------------------
 
-Question:
+{context}
+
+------------------------
+
+QUESTION
 
 {question}
 
-Context:
-
-{context}
+ANSWER
 """

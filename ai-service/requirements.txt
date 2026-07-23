@@ -10,5 +10,4 @@ sentencepiece
 keybert
 sentence-transformers
 
-google-genai
 python-dotenv
