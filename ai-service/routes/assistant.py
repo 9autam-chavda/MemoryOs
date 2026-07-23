@@ -26,11 +26,13 @@ def ask_assistant(request: AssistantRequest):
             "INPUT",
             question=request.question,
             memories=len(request.memories),
+            history=len(request.history),
         )
 
         answer = AssistantTask().execute(
-            request.question,
-            request.memories,
+            question=request.question,
+            memories=request.memories,
+            history=request.history,
         )
 
         return {

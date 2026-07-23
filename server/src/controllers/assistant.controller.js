@@ -8,22 +8,13 @@ const debug = (...details) => {
 
 const askAssistant = async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, sessionId } = req.body;
 
     debug("INPUT", {
       userId: req.user?.id,
+      sessionId,
       questionLength: question?.length,
     });
-
-    // -------------------------
-    // Validation
-    // -------------------------
-    if (typeof question !== "string" || !question.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Question is required.",
-      });
-    }
 
     if (!req.user?.id) {
       return res.status(401).json({
@@ -32,10 +23,25 @@ const askAssistant = async (req, res) => {
       });
     }
 
-    const result = await assistantService.process(
-      question.trim(),
-      req.user.id
-    );
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Session ID is required.",
+      });
+    }
+
+    if (typeof question !== "string" || !question.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Question is required.",
+      });
+    }
+
+    const result = await assistantService.process({
+      sessionId,
+      question: question.trim(),
+      userId: req.user.id,
+    });
 
     debug("OUTPUT", {
       sources: result.sources?.length,

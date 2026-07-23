@@ -13,6 +13,8 @@ const memoryRoutes =
 const sharedRoutes = require("./routes/shared.routes");
 const assistantRoutes = require("./routes/assistant.routes");
 
+const memorySessionRoutes = require("./routes/memorySession.routes");
+
 const app = express();
 
 app.use(cors());
@@ -48,6 +50,11 @@ app.use(
 app.use(
   "/api/assistant",
   assistantRoutes
+);
+
+app.use(
+  "/api/memory-sessions",
+   memorySessionRoutes
 );
 
 

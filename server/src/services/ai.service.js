@@ -29,7 +29,6 @@ const analyzeText = async (text) => {
 // ===========================================
 
 const generateEmbedding = async (text) => {
-
   debug("REQUEST", {
     endpoint: "/embedding",
     textLength: text?.length,
@@ -54,12 +53,14 @@ const generateEmbedding = async (text) => {
 const askAssistant = async ({
   question,
   memories,
+  history = [],
 }) => {
 
   debug("REQUEST", {
     endpoint: "/assistant",
     questionLength: question?.length,
     memories: memories?.length,
+    history: history?.length,
   });
 
   const response = await axios.post(
@@ -67,6 +68,7 @@ const askAssistant = async ({
     {
       question,
       memories,
+      history,
     }
   );
 

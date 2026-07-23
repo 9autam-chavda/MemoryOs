@@ -12,11 +12,13 @@ class LLMService:
         self,
         question: str,
         memories: list,
+        history: list,
     ) -> str:
 
         prompt = self.prompt_service.build(
             question=question,
             memories=memories,
+            history=history,
         )
 
         answer = self.provider.generate(prompt)

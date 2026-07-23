@@ -1,5 +1,6 @@
 const retrievalService = require("./ai/retrieval.service");
 const aiService = require("./ai.service");
+const memorySessionService = require("./memorySession.service");
 
 const debug = (...details) => {
   if (process.env.RAG_DEBUG === "true") {
@@ -11,22 +12,28 @@ class AssistantService {
   constructor({
     retrieval = retrievalService,
     aiClient = aiService,
+    sessionService = memorySessionService,
     model = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free",
   } = {}) {
     this.retrieval = retrieval;
     this.aiClient = aiClient;
+    this.sessionService = sessionService;
     this.model = model;
   }
 
-  /**
-   * Execute the complete RAG pipeline.
-   */
-  async process(question, userId) {
+  async process({
+    sessionId,
+    question,
+    userId,
+  }) {
     const startedAt = Date.now();
 
-    // -------------------------
-    // Validate Input
-    // -------------------------
+    if (!sessionId) {
+      const error = new Error("Session ID is required.");
+      error.status = 400;
+      throw error;
+    }
+
     if (typeof question !== "string" || !question.trim()) {
       const error = new Error("Question is required.");
       error.status = 400;
@@ -39,14 +46,41 @@ class AssistantService {
       throw error;
     }
 
+    question = question.trim();
+
     debug("INPUT", {
-      questionLength: question.length,
+      sessionId,
       userId,
+      questionLength: question.length,
     });
 
-    // -------------------------
-    // Retrieve Memories
-    // -------------------------
+    // Validate session
+    await this.sessionService.getSessionById(
+      sessionId,
+      userId
+    );
+
+    // Load previous conversation BEFORE saving current question
+    const history = (
+      await this.sessionService.getRecentMessages(
+        sessionId,
+        8
+      )
+    )
+    .reverse()
+    .map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
+
+    // Save current user message
+    await this.sessionService.saveMessage({
+      sessionId,
+      role: "user",
+      content: question,
+    });
+
+    // Retrieve relevant memories
     const memories = await this.retrieval.retrieve(
       question,
       userId
@@ -54,30 +88,35 @@ class AssistantService {
 
     debug("RETRIEVAL", {
       memories: memories.length,
+      history: history.length,
     });
 
     if (memories.length === 0) {
+      const answer =
+        "I couldn't find anything related to your question in your uploaded memories.";
+
+      await this.sessionService.saveMessage({
+        sessionId,
+        role: "assistant",
+        content: answer,
+      });
+
       return this.#response(
-        "I couldn't find anything related to your question in your uploaded memories.",
+        answer,
         [],
         startedAt
       );
     }
 
-    // -------------------------
-    // Ask AI Service
-    // -------------------------
     let response;
 
     try {
-
       response = await this.aiClient.askAssistant({
-        question: question.trim(),
+        question,
         memories,
+        history,
       });
-
     } catch (error) {
-
       console.error("[AssistantService]", error);
 
       const serviceError = new Error(
@@ -95,8 +134,25 @@ class AssistantService {
       typeof answer !== "string" ||
       !answer.trim()
     ) {
-      throw new Error("Invalid answer returned.");
+      throw new Error(
+        "Invalid answer returned."
+      );
     }
+
+    await this.sessionService.saveMessage({
+      sessionId,
+      role: "assistant",
+      content: answer,
+      sources: memories.map((memory) => ({
+        id: memory.id,
+        title: memory.title,
+        similarity: memory.similarity,
+      })),
+      metadata: {
+        model: this.model,
+        responseTime: Date.now() - startedAt,
+      },
+    });
 
     return this.#response(
       answer,
@@ -108,15 +164,12 @@ class AssistantService {
   #response(answer, memories, startedAt) {
     return {
       success: true,
-
       answer,
-
       sources: memories.map((memory) => ({
         id: memory.id,
         title: memory.title,
         similarity: memory.similarity,
       })),
-
       metadata: {
         model: this.model,
         retrievedMemories: memories.length,

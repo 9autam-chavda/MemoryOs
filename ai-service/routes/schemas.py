@@ -3,9 +3,6 @@ from pydantic import BaseModel
 
 # ============================================
 # Common Text Request
-# Used by:
-# - /analyze
-# - /embedding
 # ============================================
 
 class AnalyzeRequest(BaseModel):
@@ -25,9 +22,19 @@ class MemoryContext(BaseModel):
 
 
 # ============================================
+# Conversation History
+# ============================================
+
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
+# ============================================
 # Assistant Request
 # ============================================
 
 class AssistantRequest(BaseModel):
     question: str
     memories: list[MemoryContext]
+    history: list[HistoryMessage] = []

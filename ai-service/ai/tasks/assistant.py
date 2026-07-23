@@ -10,9 +10,11 @@ class AssistantTask:
         self,
         question: str,
         memories: list,
+        history: list,
     ) -> str:
 
         return self.llm_service.generate(
-            question,
-            memories,
+            question=question,
+            memories=memories,
+            history=history,
         )
