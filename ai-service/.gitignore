@@ -11,3 +11,6 @@ venv/
 # HuggingFace cache
 .cache/
 
+.env
+.env.*
+!.env.example
