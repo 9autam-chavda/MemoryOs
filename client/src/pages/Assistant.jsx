@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Sparkles, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import AppLayout from "../components/layout/AppLayout";
-import AssistantSidebar from "../components/assistant/AssistantSidebar";
 import Conversation from "../components/assistant/Conversation";
 import AssistantComposer from "../components/assistant/AssistantComposer";
 import assistantService from "../services/assistant.service";
 import memorySessionService from "../services/memorySession.service";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const suggestions = [
   "What medicines did my doctor prescribe?",
@@ -18,6 +17,7 @@ const suggestions = [
 
 function Assistant() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [sessions, setSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
@@ -59,11 +59,26 @@ function Assistant() {
       }
 
       const sorted = sortByNewest(fetchedSessions);
-      const newest = sorted[0];
 
       setSessions(sorted);
-      setCurrentSession(newest);
-      await loadMessages(newest._id);
+
+      const sessionId = searchParams.get("session");
+
+      let selectedSession;
+
+      if (sessionId) {
+        selectedSession = sorted.find(
+          (session) => session._id === sessionId
+        );
+      }
+
+      if (!selectedSession) {
+        selectedSession = sorted[0];
+      }
+
+      setCurrentSession(selectedSession);
+
+      await loadMessages(selectedSession._id);
     } catch (error) {
       const message =
         error.response?.data?.message || "Could not load your sessions.";
@@ -93,6 +108,7 @@ function Assistant() {
       if (existingEmptySession) {
         setCurrentSession(existingEmptySession);
         await loadMessages(existingEmptySession._id);
+        navigate("/assistant", { replace: true });
         return;
       }
 
@@ -101,57 +117,14 @@ function Assistant() {
       setSessions((current) => [newSession, ...current]);
       setCurrentSession(newSession);
       setMessages([]);
+
+      navigate("/assistant", { replace: true });
     } catch (error) {
-      const message =
+      toast.error(
         error.response?.data?.message ||
-        "Could not create a new session.";
-
-      toast.error(message);
+          "Could not create a new session."
+      );
     }
-  };
-
-  const handleDeleteSession = async (session) => {
-  const confirmed = window.confirm(
-    `Delete "${session.title}"?`
-  );
-
-  if (!confirmed) return;
-
-  try {
-    await memorySessionService.deleteSession(session._id);
-
-    const updatedSessions =
-      sessions.filter((s) => s._id !== session._id);
-
-    if (updatedSessions.length === 0) {
-      const newSession =
-        await memorySessionService.createSession();
-
-      setSessions([newSession]);
-      setCurrentSession(newSession);
-      setMessages([]);
-      return;
-    }
-
-    const nextSession = updatedSessions[0];
-
-    setSessions(updatedSessions);
-    setCurrentSession(nextSession);
-
-    await loadMessages(nextSession._id);
-
-  } catch (error) {
-    toast.error(
-      error.response?.data?.message ||
-      "Unable to delete session."
-    );
-  }
-};
-
-  const handleSelectSession = async (session) => {
-    if (session._id === currentSession?._id) return;
-    setCurrentSession(session);
-    await loadMessages(session._id);
   };
 
   const handleOpenSource = (sourceId) => {
@@ -172,9 +145,6 @@ function Assistant() {
         currentSession._id,
         value
       );
-
-      console.log("Assistant Result:", result);
-console.log("Sources:", result.sources);
 
       const assistantMessage = {
         role: "assistant",
@@ -212,26 +182,38 @@ console.log("Sources:", result.sources);
 
   return (
     <AppLayout>
-      <div className="flex h-full w-full">
-        <AssistantSidebar
-          sessions={sessions}
-          currentSession={currentSession}
-          onSelectSession={handleSelectSession}
-          onNewSession={handleNewSession}
-          onDeleteSession={handleDeleteSession}
-        />
-
         <section className="mx-auto flex w-full max-w-4xl flex-1 flex-col py-4 sm:py-8">
-          <header className="text-center">
-            <span className="mx-auto grid h-11 w-11 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
-              <Sparkles size={20} />
-            </span>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">
-              MemoryOS Assistant
-            </h1>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Ask anything about your memories.
-            </p>
+          <header className="mb-8">
+            <div className="relative flex items-start justify-center">
+
+              {/* New Session Button */}
+              <div className="absolute right-0 top-0">
+                <button
+                  type="button"
+                  onClick={handleNewSession}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-panel)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                >
+                  <Plus size={16} />
+                  New Session
+                </button>
+              </div>
+
+              {/* Header */}
+              <div className="text-center">
+                <span className="mx-auto grid h-11 w-11 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                  <Sparkles size={20} />
+                </span>
+
+                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                  MemoryOS Assistant
+                </h1>
+
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                  Ask anything about your memories.
+                </p>
+              </div>
+
+            </div>
           </header>
 
           {messages.length === 0 ? (
@@ -274,7 +256,6 @@ console.log("Sources:", result.sources);
             </>
           )}
         </section>
-      </div>
     </AppLayout>
   );
 }
