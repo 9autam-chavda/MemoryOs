@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import InputField from "../components/ui/InputField";
 import PasswordInput from "../components/ui/PasswordInput";
 import authService from "../services/auth.service";
-import { useAuth } from "../contexts/AuthContext";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const pwChecks = {
@@ -18,32 +17,42 @@ const pwChecks = {
 };
 
 function PasswordStrength({ password }) {
-  const passed = useMemo(() => Object.values(pwChecks).map((fn) => fn(password)), [password]);
-  const score = passed.filter(Boolean).length;
+  let width = "0%";
+  let color = "bg-zinc-800";
 
-  const colors = ["bg-red-500", "bg-orange-400", "bg-yellow-400", "bg-green-400", "bg-green-500"];
+  if (password.length > 0) {
+    width = "33%";
+    color = "bg-red-500";
+  }
+
+  if (password.length >= 5) {
+    width = "66%";
+    color = "bg-yellow-500";
+  }
+
+  if (password.length >= 8) {
+    width = "100%";
+    color = "bg-emerald-500";
+  }
 
   return (
-    <div className="mt-2">
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className={`h-1.5 w-full rounded ${i < score ? colors[score - 1] : "bg-zinc-800"}`} />
-        ))}
+    <div className="mt-3">
+      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${color}`}
+          style={{ width }}
+        />
       </div>
-      <div className="mt-2 flex flex-wrap gap-3 text-xs text-zinc-400">
-        <span className={`flex items-center gap-1 ${pwChecks.length(password) ? "text-green-300" : "text-zinc-500"}`}><Check size={14} />8+ chars</span>
-        <span className={`flex items-center gap-1 ${pwChecks.upper(password) ? "text-green-300" : "text-zinc-500"}`}>Uppercase</span>
-        <span className={`flex items-center gap-1 ${pwChecks.lower(password) ? "text-green-300" : "text-zinc-500"}`}>Lowercase</span>
-        <span className={`flex items-center gap-1 ${pwChecks.number(password) ? "text-green-300" : "text-zinc-500"}`}>Number</span>
-        <span className={`flex items-center gap-1 ${pwChecks.special(password) ? "text-green-300" : "text-zinc-500"}`}>Special</span>
-      </div>
+
+      <p className="mt-2 text-xs text-zinc-500">
+        Use at least 8 characters for a stronger password.
+      </p>
     </div>
   );
 }
 
 function Register() {
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
   const [showPwd, setShowPwd] = useState(false);
@@ -95,16 +104,17 @@ function Register() {
       const payload = { name: form.name.trim(), email: form.email.trim(), password: form.password };
       const response = await authService.register(payload);
 
-      // If backend returns token + user, log user in
-      if (response.token && response.user) {
-        login(response.token, response.user);
-        toast.success("Welcome to MemoryOS — redirecting…");
-        navigate("/dashboard");
-        return;
-      }
+      toast.success(
+        response.message ||
+          "Registration successful. Please verify your email."
+      );
 
-      toast.success(response.message || "Registration successful. Please login.");
-      navigate("/");
+      navigate("/verify-email", {
+        replace: true,
+        state: {
+          email: form.email.trim(),
+        },
+      });
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || err.message || "Registration failed";
@@ -195,7 +205,7 @@ function Register() {
 
           <div className="mt-6 flex items-center justify-between text-sm text-zinc-500">
             <div>Already have an account?</div>
-            <Link to="/" className="font-medium text-blue-300 transition hover:text-blue-200">Login</Link>
+            <Link to="/login" className="font-medium text-blue-300 transition hover:text-blue-200">Login</Link>
           </div>
         </div>
       </div>

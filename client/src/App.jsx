@@ -9,7 +9,12 @@ import MemoryDetails from "./pages/MemoryDetails";
 import SharedMemory from "./pages/SharedMemory";
 import Settings from "./pages/Settings";
 import Assistant from "./pages/Assistant";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicRoute from "./routes/PublicRoute";
 
 function App() {
   return (
@@ -41,21 +46,96 @@ function App() {
 
       <Routes>
 
+        {/* Default Redirect */}
+        <Route
+          path="/"
+          element={<Navigate to="/login" replace />}
+        />
+
         {/* Public Routes */}
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/shared/:token" element={<SharedMemory />} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmail />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/shared/:token"
+          element={<SharedMemory />}
+        />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/assistant" element={<Assistant />} />
-          <Route path="/memory/:id" element={<MemoryDetails />} />
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="/gallery"
+            element={<Gallery />}
+          />
+
+          <Route
+            path="/assistant"
+            element={<Assistant />}
+          />
+
+          <Route
+            path="/memory/:id"
+            element={<MemoryDetails />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
         </Route>
 
-        <Route path="*" element={<Navigate replace to="/" />} />
+        {/* Unknown Route */}
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
+        />
 
       </Routes>
     </>

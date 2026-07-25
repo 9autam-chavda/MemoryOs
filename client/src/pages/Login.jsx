@@ -41,9 +41,24 @@ function Login() {
       login(response.token, response.user);
       navigate("/dashboard");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
-    } finally {
-      setSubmitting(false);
+
+      const message =
+        error.response?.data?.message ||
+        "Login failed";
+
+      toast.error(message);
+
+      if (
+        message ===
+        "Please verify your email before logging in."
+      ) {
+        navigate("/verify-email", {
+          state: {
+            email: formData.email,
+          },
+        });
+      }
+
     }
   };
 
@@ -85,7 +100,16 @@ function Login() {
             <div>
               <label className="mb-2 block text-sm text-zinc-400" htmlFor="password">Password</label>
               <input id="password" type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleChange} className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-100 outline-none transition focus:border-blue-500/40" />
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-blue-300 transition hover:text-blue-200"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
+            
 
             <button
               type="submit"

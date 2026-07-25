@@ -13,11 +13,37 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
     },
 
     password: {
       type: String,
       required: true,
+    },
+
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationOtpHash: {
+      type: String,
+      default: null,
+    },
+
+    verificationOtpExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
+    resetPasswordOtpHash: {
+      type: String,
+      default: null,
+    },
+
+    resetPasswordOtpExpiresAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -25,7 +51,4 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "User",
-  userSchema
-);
+module.exports = mongoose.model("User", userSchema);

@@ -42,11 +42,7 @@ function Dashboard() {
   const searchableTypes = new Set(memories.map((memory) => memory.fileType || memory.category).filter(Boolean)).size;
   const displayPinnedMemories = pinnedMemories.length ? pinnedMemories : recentMemories.slice(0, 3);
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    navigate(`/gallery${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ""}`);
-  };
-
+  
   const refreshMemories = async () => {
     const response = await memoryService.getMemories();
     setMemories(response.data);
@@ -55,57 +51,7 @@ function Dashboard() {
   return (
     <AppLayout>
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 py-3 sm:gap-6 sm:py-5">
-        <section className="rounded-[1.75rem] border border-[var(--border-subtle)] bg-[var(--surface-panel)] px-5 py-5 sm:px-7 sm:py-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-sm font-medium text-[var(--accent)]">AI second brain</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">What should I continue?</h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--text-secondary)]">Pick up from the latest memory, note, or document without losing context.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsUploadOpen(true)}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-subtle)] bg-white/[0.04] px-4 text-sm font-medium text-[var(--text-primary)] transition duration-200 hover:border-[var(--border-strong)] hover:bg-white/[0.08] sm:w-auto"
-            >
-              <Upload size={16} strokeWidth={1.8} />
-              Upload
-            </button>
-          </div>
-
-          <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-3 sm:flex-row" aria-label="Dashboard search">
-            <div className="flex h-13 flex-1 items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-zinc-950/70 px-4 transition duration-200 hover:border-[var(--border-strong)] focus-within:border-[var(--accent)] focus-within:bg-zinc-950">
-              <Search size={18} strokeWidth={1.8} className="shrink-0 text-[var(--text-tertiary)]" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search across notes, documents, screenshots, and audio"
-                aria-label="Search memories"
-                className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
-              />
-            </div>
-            <button type="submit" className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-medium text-zinc-950 transition duration-200 hover:bg-zinc-200">
-              Search
-              <ArrowRight size={16} strokeWidth={1.8} />
-            </button>
-          </form>
-
-          <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--text-tertiary)]">
-            {[
-              "What did I save about onboarding?",
-              "Find recent invoices",
-              "Summarize the meeting notes",
-            ].map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => navigate(`/gallery?q=${encodeURIComponent(item)}`)}
-                className="rounded-full border border-[var(--border-subtle)] bg-white/[0.03] px-3 py-1.5 transition duration-200 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </section>
+        
 
         {loading ? (
           <div className="grid gap-4 md:grid-cols-3">
