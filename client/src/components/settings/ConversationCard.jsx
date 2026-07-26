@@ -2,121 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import HistoryActionBar from "./HistoryActionBar";
 
-function ConversationCard({
-  session,
-  isEditing,
-  onOpen,
-  onStartRename,
-  onCancelRename,
-  onSaveRename,
-  onDelete,
-}) {
-  const [draftTitle, setDraftTitle] = useState(session.title);
-  const inputRef = useRef(null);
-
-  // Reset the draft and focus+select whenever this card ENTERS edit mode.
-  // Runs only on the isEditing transition, not on every keystroke.
-  useEffect(() => {
-    if (isEditing) {
-      setDraftTitle(session.title);
-      // Wait a tick so the input is mounted before we focus it.
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      });
-    }
-  }, [isEditing, session.title]);
-
-  const handleInfoClick = () => {
-    if (isEditing) return; // don't navigate while editing
-    onOpen(session._id);
-  };
-
-  const handleInfoKeyDown = (e) => {
-    if (isEditing) return;
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onOpen(session._id);
-    }
-  };
-
-  const commit = () => {
-    const trimmed = draftTitle.trim();
-
-    if (!trimmed) {
-      // Empty -> restore previous title, no API call
-      onCancelRename();
-      return;
-    }
-
-    if (trimmed === session.title) {
-      // Unchanged -> just exit edit mode, no API call
-      onCancelRename();
-      return;
-    }
-
-    onSaveRename(session, trimmed);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      inputRef.current?.blur(); // triggers commit via onBlur
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setDraftTitle(session.title);
-      onCancelRename();
-    }
-  };
-
-  return (
-    <div
-      className="group flex w-full items-center justify-between rounded-[18px] border border-[var(--border-subtle)] bg-[var(--surface-panel)] py-4 pl-5 pr-4 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[var(--accent)]/60 hover:shadow-lg hover:shadow-black/10"
-    >
-      <div
-        role={isEditing ? undefined : "button"}
-        tabIndex={isEditing ? -1 : 0}
-        onClick={handleInfoClick}
-        onKeyDown={handleInfoKeyDown}
-        className={`flex min-w-0 flex-1 items-center gap-3 outline-none ${
-          isEditing ? "" : "cursor-pointer"
-        }`}
-      >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
-          <MessageSquare size={18} />
-        </div>
-
-        <div className="min-w-0 flex-1 text-left">
-          {isEditing ? (
-            <input
-              ref={inputRef}
-              value={draftTitle}
-              onChange={(e) => setDraftTitle(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={handleKeyDown}
-              onBlur={commit}
-              className="w-full origin-left animate-[renameIn_150ms_ease-out] rounded-lg border border-transparent bg-transparent px-1 -ml-1 text-base font-semibold text-[var(--text-primary)] outline-none transition-colors duration-150 focus:border-[var(--accent)]/60"
-            />
-          ) : (
-            <p className="truncate text-base font-semibold text-[var(--text-primary)]">
-              {session.title}
-            </p>
-          )}
-
-          <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-            {new Date(session.updatedAt).toLocaleString()}
-          </p>
-        </div>
-      </div>
-
-      <HistoryActionBar
-        renameDisabled={isEditing}
-        onOpen={() => onOpen(session._id)}
-        onRename={() => onStartRename(session._id)}
-        onDelete={() => onDelete(session)}
-      />
-    </div>
-  );
+function ConversationCard({ session, isEditing, onOpen, onStartRename, onCancelRename, onSaveRename, onDelete }) {
+  const [draftTitle, setDraftTitle] = useState(session.title); const inputRef = useRef(null);
+  useEffect(() => { if (isEditing) { // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraftTitle(session.title); requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); }); } }, [isEditing, session.title]);
+  const commit = () => { const title = draftTitle.trim(); if (!title || title === session.title) { onCancelRename(); return; } onSaveRename(session, title); };
+  const open = () => { if (!isEditing) onOpen(session._id); };
+  return <div className="group flex min-h-16 items-center gap-3 border-b border-[var(--border-subtle)] px-2 py-3 transition-colors duration-150 last:border-b-0 hover:bg-[var(--surface-overlay)]"><button type="button" onClick={open} aria-label={`Open conversation ${session.title}`} className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--surface-muted)] text-[var(--text-secondary)]"><MessageSquare size={16} /></span><span className="min-w-0 flex-1">{isEditing ? <input ref={inputRef} value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); inputRef.current?.blur(); } if (event.key === "Escape") { setDraftTitle(session.title); onCancelRename(); } }} onBlur={commit} className="ui-input h-8 px-2 text-sm font-medium" /> : <span className="block truncate text-[15px] font-medium text-[var(--text-primary)]">{session.title}</span>}<span className="mt-1 block text-[13px] text-[var(--text-tertiary)]">{new Date(session.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span></span></button><HistoryActionBar renameDisabled={isEditing} onOpen={() => onOpen(session._id)} onRename={() => onStartRename(session._id)} onDelete={() => onDelete(session)} /></div>;
 }
-
 export default ConversationCard;

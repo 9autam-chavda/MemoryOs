@@ -1,6 +1,8 @@
-function StatCard({ title, value, detail, icon: Icon }) {
+import Card from "./Card";
+
+function StatCard({ title, value, detail, icon: Icon, compact = false }) {
   return (
-    <div className="group min-h-36 rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-panel)] p-5 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--surface-panel-raised)]">
+    <Card interactive className={`group ${compact ? "min-h-0 p-4" : "min-h-36 p-5"}`}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-[var(--text-secondary)]">{title}</p>
         {Icon && (
@@ -9,9 +11,9 @@ function StatCard({ title, value, detail, icon: Icon }) {
           </span>
         )}
       </div>
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--text-primary)]">{value}</h2>
+      <h2 className={`${compact ? "mt-3 text-2xl" : "mt-4 text-3xl"} font-semibold tracking-tight text-[var(--text-primary)]`}>{value}</h2>
       {detail && <p className="mt-2 text-sm leading-5 text-[var(--text-tertiary)]">{detail}</p>}
-    </div>
+    </Card>
   );
 }
 

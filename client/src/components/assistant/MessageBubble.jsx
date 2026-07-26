@@ -1,65 +1,10 @@
-import { Bot, LoaderCircle } from "lucide-react";
+import { Bot, Copy, RotateCw } from "lucide-react";
 import MarkdownAnswer from "./MarkdownAnswer";
 import SourceCard from "./SourceCard";
-
-function MessageBubble({ message, onOpenSource }) {
-  if (message.role === "user") {
-    return (
-      <div className="ml-auto max-w-[88%] rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm leading-6 text-white">
-        {message.content}
-      </div>
-    );
-  }
-
-  if (message.role === "error") {
-    return (
-      <div className="rounded-2xl border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-300">
-        {message.content}
-      </div>
-    );
-  }
-
-  if (message.role === "loading") {
-    return (
-      <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
-        <LoaderCircle size={17} className="animate-spin text-[var(--accent)]" />
-        Searching your memories and writing an answer…
-      </div>
-    );
-  }
-
-  return (
-    <article className="rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-panel)] p-5 sm:p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
-          <Bot size={16} />
-        </span>
-        <span className="text-sm font-medium text-[var(--text-primary)]">MemoryOS</span>
-      </div>
-
-      <MarkdownAnswer content={message.content} />
-
-      {message.sources?.length > 0 && (
-        <div className="mt-6 border-t border-[var(--border-subtle)] pt-5">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
-            Sources
-          </p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {message.sources.map((source) => (
-              <SourceCard
-                key={source.id}
-                source={source}
-                onOpen={() => {
-  console.log("Clicked source:", source);
-  onOpenSource(source.id);
-}}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-    </article>
-  );
+import Button from "../ui/Button";
+function MessageBubble({ message, onOpenSource, onRetry, onRegenerate }) {
+  if (message.role === "user") return <div className="ml-auto max-w-[82%] rounded-[var(--radius-md)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-primary)] sm:max-w-[65%]">{message.content}</div>;
+  if (message.role === "error") return <div className="max-w-xl rounded-[var(--radius-md)] border border-red-500/25 bg-red-500/10 p-4 text-sm text-[var(--danger)]"><p>{message.content}</p>{onRetry && <Button variant="ghost" className="mt-2 min-h-8 px-2 text-[var(--danger)]" onClick={onRetry}><RotateCw size={14} />Retry</Button>}</div>;
+  return <article className="group max-w-3xl"><div className="mb-3 flex items-center gap-2"><Bot size={15} className="text-[var(--text-tertiary)]" /><span className="text-sm font-medium text-[var(--text-primary)]">Assistant</span><div className="ml-auto flex gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100"><Button variant="ghost" className="min-h-7 px-2 text-xs" onClick={() => navigator.clipboard?.writeText(message.content)}> <Copy size={13} />Copy</Button>{onRegenerate && <Button variant="ghost" className="min-h-7 px-2 text-xs" onClick={onRegenerate}><RotateCw size={13} />Regenerate</Button>}</div></div><MarkdownAnswer content={message.content} />{message.sources?.length > 0 && <div className="mt-6"><p className="mb-2 text-xs font-medium text-[var(--text-tertiary)]">Referenced memories</p><div className="space-y-2">{message.sources.map((source) => <SourceCard key={source.id} source={source} onOpen={() => onOpenSource(source.id)} />)}</div></div>}</article>;
 }
-
 export default MessageBubble;

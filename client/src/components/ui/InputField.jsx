@@ -14,10 +14,10 @@ const InputField = ({ id, label, type = "text", value, onChange, name, autoCompl
         placeholder=" "
         aria-invalid={invalid ? "true" : "false"}
         aria-required={required ? "true" : "false"}
-        className="peer w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 px-4 py-4 text-sm text-zinc-100 outline-none transition focus:border-blue-500/40"
+        className="ui-input peer h-[52px] px-4 text-[15px]"
         {...rest}
       />
-      <label htmlFor={id} className="pointer-events-none absolute left-4 top-3 origin-left -translate-y-1/2 transform text-sm text-zinc-400 transition-all peer-placeholder-shown:top-4 peer-focus:top-3 peer-focus:-translate-y-1/2">
+      <label htmlFor={id} className="pointer-events-none absolute left-4 top-3 origin-left -translate-y-1/2 transform text-sm text-[var(--text-secondary)] transition-all peer-placeholder-shown:top-4 peer-focus:top-3 peer-focus:-translate-y-1/2">
         {label}
       </label>
     </div>

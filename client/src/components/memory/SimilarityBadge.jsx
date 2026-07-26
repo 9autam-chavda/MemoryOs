@@ -1,4 +1,5 @@
 function SimilarityBadge({ score }) {
+  if (score === undefined || score === null || Number.isNaN(Number(score))) return null;
   const safeScore = Number(score) || 0;
 
   const tone = safeScore >= 95

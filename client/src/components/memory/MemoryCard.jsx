@@ -4,6 +4,8 @@ import { CalendarDays, Heart } from "lucide-react";
 import toast from "react-hot-toast";
 
 import memoryService from "../../services/memory.service";
+import Badge from "../ui/Badge";
+import Card from "../ui/Card";
 
 import ImagePreview from "./previews/ImagePreview";
 import PdfPreview from "./previews/PdfPreview";
@@ -18,8 +20,6 @@ function MemoryCard({ memory }) {
   const createdDate = memory.createdAt
     ? new Date(memory.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
     : "Today";
-  const summary = memory.summary || memory.extractedText || "Open to review the full context.";
-
   const renderPreview = () => {
     switch (memory.fileType) {
       case "image":
@@ -38,7 +38,9 @@ function MemoryCard({ memory }) {
   };
 
   return (
-    <article
+    <Card
+      as="article"
+      interactive
       role="button"
       tabIndex={0}
       aria-label={`Open memory ${memory.fileName}`}
@@ -49,7 +51,7 @@ function MemoryCard({ memory }) {
           navigate(`/memory/${memory.id}`);
         }
       }}
-      className="group cursor-pointer overflow-hidden rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-panel)] text-left transition duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--surface-panel-raised)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+      className="group relative cursor-pointer overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
     >
       <div className="relative">
         <div className="absolute right-3 top-3 z-10">
@@ -74,7 +76,7 @@ function MemoryCard({ memory }) {
             disabled={toggling}
             aria-pressed={isFavorite}
             aria-label={isFavorite ? "Remove favorite" : "Add to favorites"}
-            className={`flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] transition duration-200 ${isFavorite ? "scale-105 bg-red-600/20 text-red-300 shadow-md" : "bg-white/[0.04] text-zinc-300 hover:scale-105 hover:bg-white/[0.08]"} ${toggling ? "cursor-wait" : ""}`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-subtle)] transition duration-200 ${isFavorite ? "bg-red-600/20 text-red-300" : "bg-[var(--surface-panel)]/90 text-[var(--text-secondary)] hover:bg-[var(--surface-panel)] hover:text-[var(--text-primary)]"} ${toggling ? "cursor-wait" : ""}`}
           >
             <Heart className={`transition-colors ${isFavorite ? "text-red-400" : "text-zinc-300"}`} size={18} strokeWidth={1.8} />
           </button>
@@ -82,21 +84,17 @@ function MemoryCard({ memory }) {
 
         <div className="relative overflow-hidden">
           {renderPreview()}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-200">{memory.category || "Memory"}</span>
-          </div>
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <h2 className="line-clamp-2 text-sm font-medium leading-6 text-[var(--text-primary)]">{memory.fileName}</h2>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--text-tertiary)]">{summary}</p>
-          <div className="mt-4 flex items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
+          <h2 className="truncate text-sm font-medium leading-6 text-[var(--text-primary)]">{memory.fileName}</h2>
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[var(--text-tertiary)]">
             <span className="flex items-center gap-1.5"><CalendarDays size={13} strokeWidth={1.8} /> {createdDate}</span>
-            <span className="truncate">{memory.fileType || "file"}</span>
+            <Badge>{memory.fileType || "file"}</Badge>
           </div>
         </div>
       </div>
-    </article>
+    </Card>
   );
 }
 

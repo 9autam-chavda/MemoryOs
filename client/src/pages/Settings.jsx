@@ -1,123 +1,15 @@
 import { useEffect, useState } from "react";
-import { Palette, History } from "lucide-react";
-
-import { useTheme } from "../contexts/ThemeContext";
+import { Check, History, Laptop, Moon, Palette, Sun } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import AssistantHistory from "../components/settings/AssistantHistory";
+import Card from "../components/ui/Card";
+import { useTheme } from "../contexts/ThemeContext";
 
+const tabs = [{ id: "appearance", label: "Appearance", icon: Palette }, { id: "history", label: "Assistant history", icon: History }];
+const themeOptions = [{ value: "light", label: "Light", description: "Bright interface", icon: Sun }, { value: "dark", label: "Dark", description: "Low-light workspace", icon: Moon }, { value: "system", label: "System", description: "Matches your device", icon: Laptop }];
 function Settings() {
-  const { theme, setTheme } = useTheme();
-
-  const [activeTab, setActiveTab] = useState("appearance");
-
-  useEffect(() => {
-    document.title = "Settings · MemoryOS";
-  }, []);
-
-  return (
-    <AppLayout>
-      <div className="mx-auto w-full max-w-6xl py-8">
-
-        <h1 className="mb-8 text-3xl font-bold text-[var(--text-primary)]">
-          Settings
-        </h1>
-
-        <div className="grid grid-cols-[260px_1fr] gap-8">
-
-          {/* Left Navigation */}
-
-          <aside className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-panel)] p-3">
-
-            <button
-              onClick={() => setActiveTab("appearance")}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition ${
-                activeTab === "appearance"
-                  ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                  : "text-[var(--text-secondary)] hover:bg-white/[0.04]"
-              }`}
-            >
-              <Palette size={18} />
-              Appearance
-            </button>
-
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition ${
-                activeTab === "history"
-                  ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                  : "text-[var(--text-secondary)] hover:bg-white/[0.04]"
-              }`}
-            >
-              <History size={18} />
-              Assistant History
-            </button>
-
-          </aside>
-
-          {/* Right Panel */}
-
-          <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-panel)] p-8">
-
-            {activeTab === "appearance" && (
-              <>
-                <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
-                  Appearance
-                </h2>
-
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                  Choose how MemoryOS looks on your device.
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-
-                  <button
-                    onClick={() => setTheme("light")}
-                    className={`rounded-full px-5 py-2.5 transition ${
-                      theme === "light"
-                        ? "bg-white text-black"
-                        : "bg-white/5 text-white"
-                    }`}
-                  >
-                    Light
-                  </button>
-
-                  <button
-                    onClick={() => setTheme("dark")}
-                    className={`rounded-full px-5 py-2.5 transition ${
-                      theme === "dark"
-                        ? "bg-white text-black"
-                        : "bg-white/5 text-white"
-                    }`}
-                  >
-                    Dark
-                  </button>
-
-                  <button
-                    onClick={() => setTheme("system")}
-                    className={`rounded-full px-5 py-2.5 transition ${
-                      theme === "system"
-                        ? "bg-white text-black"
-                        : "bg-white/5 text-white"
-                    }`}
-                  >
-                    System
-                  </button>
-
-                </div>
-              </>
-            )}
-
-            {activeTab === "history" && (
-              <AssistantHistory />
-            )}
-
-          </section>
-
-        </div>
-
-      </div>
-    </AppLayout>
-  );
+  const { theme, setTheme } = useTheme(); const [activeTab, setActiveTab] = useState("appearance");
+  useEffect(() => { document.title = "Settings · MemoryOS"; }, []);
+  return <AppLayout><div className="mx-auto w-full max-w-5xl py-3 sm:py-5"><h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Settings</h1><div className="mt-5 grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]"><aside aria-label="Settings sections" className="flex gap-1 overflow-x-auto lg:block lg:space-y-1">{tabs.map((tab) => { const Icon = tab.icon; const active = activeTab === tab.id; return <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex h-12 shrink-0 items-center gap-3 rounded-xl px-3 text-sm transition duration-150 lg:w-full ${active ? "bg-[var(--surface-muted)] font-medium text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-overlay)] hover:text-[var(--text-primary)]"}`}><Icon size={16} />{tab.label}</button>; })}</aside><Card className="min-h-0 p-6 sm:p-7">{activeTab === "appearance" ? <section aria-labelledby="appearance-heading"><h2 id="appearance-heading" className="text-base font-semibold text-[var(--text-primary)]">Appearance</h2><div className="mt-5"><div className="border-b border-[var(--border-subtle)] pb-4"><p className="text-sm font-medium text-[var(--text-primary)]">Theme</p><p className="mt-1 text-sm text-[var(--text-secondary)]">Choose how MemoryOS looks.</p></div><div className="divide-y divide-[var(--border-subtle)]">{themeOptions.map((option) => { const Icon = option.icon; const selected = theme === option.value; return <button key={option.value} type="button" onClick={() => setTheme(option.value)} aria-pressed={selected} className={`flex w-full items-center gap-3 px-3 py-4 text-left transition duration-150 ${selected ? "rounded-[var(--radius-sm)] border border-[var(--accent)] bg-[var(--accent-soft)]" : "hover:bg-[var(--surface-overlay)]"}`}><Icon size={17} className="text-[var(--text-secondary)]" /><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-[var(--text-primary)]">{option.label}</span><span className="mt-0.5 block text-xs text-[var(--text-tertiary)]">{option.description}</span></span>{selected && <Check size={16} className="text-[var(--accent)]" />}</button>; })}</div></div></section> : <AssistantHistory />}</Card></div></div></AppLayout>;
 }
-
 export default Settings;

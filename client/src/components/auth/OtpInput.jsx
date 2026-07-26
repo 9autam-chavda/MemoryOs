@@ -48,7 +48,7 @@ function OtpInput({ value, onChange }) {
   };
 
   return (
-    <div className="flex justify-center gap-3">
+    <div className="flex justify-center gap-2">
       {Array.from({ length: 6 }).map((_, index) => (
         <input
           key={index}
@@ -64,7 +64,8 @@ function OtpInput({ value, onChange }) {
           onChange={(e) =>
             handleChange(index, e)
           }
-          className="h-14 w-14 rounded-2xl border border-zinc-700 bg-zinc-900 text-center text-xl font-semibold outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+          aria-label={`Verification digit ${index + 1}`}
+          className="ui-input h-12 w-12 rounded-xl p-0 text-center text-lg font-semibold"
         />
       ))}
     </div>
