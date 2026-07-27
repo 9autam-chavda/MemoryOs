@@ -7,6 +7,7 @@ import AppLayout from "../components/layout/AppLayout";
 import MemoryGrid from "../components/memory/MemoryGrid";
 import UploadModal from "../components/upload/UploadModal";
 import memoryService from "../services/memory.service";
+import {subscribeMemoryUpdated} from "../utils/events";
 
 const filters = [
   { value: "all", label: "All" },
@@ -34,6 +35,7 @@ function Gallery() {
   useEffect(() => {
     document.title = search ? "Search · MemoryOS" : "Gallery · MemoryOS";
   }, [search]);
+  
 
   const loadMemories = useCallback(async (query = "", initialLoad = false) => {
     try {
@@ -48,6 +50,14 @@ function Gallery() {
       setSearchLoading(false);
     }
   }, [fileType]);
+
+  useEffect(() => {
+  const unsubscribe = subscribeMemoryUpdated(() => {
+    loadMemories(search);
+  });
+
+  return unsubscribe;
+}, [loadMemories, search]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
