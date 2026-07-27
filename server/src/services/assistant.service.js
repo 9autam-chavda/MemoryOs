@@ -146,6 +146,7 @@ class AssistantService {
       sources: memories.map((memory) => ({
         id: memory.id,
         title: memory.title,
+        fileType: memory.fileType,
         similarity: memory.similarity,
       })),
       metadata: {
@@ -168,6 +169,7 @@ class AssistantService {
       sources: memories.map((memory) => ({
         id: memory.id,
         title: memory.title,
+        fileType: memory.fileType,
         similarity: memory.similarity,
       })),
       metadata: {

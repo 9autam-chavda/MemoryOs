@@ -7,36 +7,15 @@ import memoryService from "../../services/memory.service";
 import Badge from "../ui/Badge";
 import Card from "../ui/Card";
 
-import ImagePreview from "./previews/ImagePreview";
-import PdfPreview from "./previews/PdfPreview";
-import AudioPreview from "./previews/AudioPreview";
-import VideoPreview from "./previews/VideoPreview";
-import TextPreview from "./previews/TextPreview";
+import MediaThumbnail from "./MediaThumbnail";
 
-function MemoryCard({ memory }) {
+function MemoryCard({ memory, variant = "gallery" }) {
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(!!memory.isFavorite);
   const [toggling, setToggling] = useState(false);
   const createdDate = memory.createdAt
     ? new Date(memory.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
     : "Today";
-  const renderPreview = () => {
-    switch (memory.fileType) {
-      case "image":
-        return <ImagePreview fileUrl={memory.fileUrl} fileName={memory.fileName} />;
-      case "pdf":
-        return <PdfPreview fileUrl={memory.fileUrl} fileName={memory.fileName} />;
-      case "audio":
-        return <AudioPreview memory={memory} />;
-      case "video":
-        return <VideoPreview fileUrl={memory.fileUrl} fileName={memory.fileName} memory={memory} />;
-      case "text":
-        return <TextPreview memory={memory} />;
-      default:
-        return <TextPreview memory={memory} />;
-    }
-  };
-
   return (
     <Card
       as="article"
@@ -51,7 +30,7 @@ function MemoryCard({ memory }) {
           navigate(`/memory/${memory.id}`);
         }
       }}
-      className="group relative cursor-pointer overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+      className={`group relative cursor-pointer overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[var(--accent)] ${variant === "dashboard" ? "" : ""}`}
     >
       <div className="relative">
         <div className="absolute right-3 top-3 z-10">
@@ -83,7 +62,7 @@ function MemoryCard({ memory }) {
         </div>
 
         <div className="relative overflow-hidden">
-          {renderPreview()}
+          <MediaThumbnail memory={memory} />
         </div>
 
         <div className="flex flex-1 flex-col p-4">

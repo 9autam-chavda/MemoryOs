@@ -57,5 +57,14 @@ app.use(
    memorySessionRoutes
 );
 
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+
+  const isUploadError = error.name === "MulterError" || error.message === "Unsupported file type";
+  res.status(isUploadError ? 400 : error.status || 500).json({
+    success: false,
+    message: isUploadError ? error.message : "An unexpected server error occurred",
+  });
+});
 
 module.exports = app;

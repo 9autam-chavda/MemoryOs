@@ -4,13 +4,20 @@ const audioExtractor = require("./extractors/audio.extractor");
 const videoExtractor = require("./extractors/video.extractor");
 const textExtractor = require("./extractors/text.extractor");
 
-const aiService = require("./ai.service");
+// ===========================================
+// Extract Text Only
+// ===========================================
 
-const extractText = async (file) => {
+const extractText = async (file, onStage) => {
 
   const mimeType = file.mimetype;
 
   let result;
+
+  await onStage?.(
+    "extracting",
+    "Extracting text..."
+  );
 
   if (mimeType.startsWith("image/")) {
 
@@ -37,28 +44,18 @@ const extractText = async (file) => {
 
   } else {
 
-    throw new Error(
-      `Unsupported file type: ${mimeType}`
-    );
+    result = {
+      extractedText: "",
+      wordCount: 0,
+      pageCount: 0,
+    };
 
   }
 
-  const ai = await aiService.analyzeText(
-    result.extractedText
-  );
-
   return {
-
-    ...result,
-
-    summary: ai.summary,
-
-    category: ai.category,
-
-    tags: ai.tags,
-
-    embedding: ai.embedding
-
+    extractedText: result.extractedText || "",
+    wordCount: result.wordCount || 0,
+    pageCount: result.pageCount || 0,
   };
 
 };

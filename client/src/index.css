@@ -33,7 +33,7 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.16), 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.18);
   --transition-ui: 180ms ease;
   background-color: var(--surface-canvas);
   color: var(--text-primary);
@@ -57,7 +57,7 @@
   --success: #059669;
   --warning: #d97706;
   --danger: #ef4444;
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.03), 0 12px 32px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.08);
   color-scheme: light;
 }
 
@@ -211,17 +211,11 @@ select {
   color: var(--text-secondary);
 }
 
-.ui-skeleton {
-  background: linear-gradient(90deg, var(--surface-muted) 20%, var(--surface-panel-raised) 50%, var(--surface-muted) 80%);
-  background-size: 200% 100%;
-  animation: ui-shimmer 1.4s ease-in-out infinite;
-}
-
-@keyframes ui-shimmer { to { background-position: -200% 0; } }
+.ui-skeleton { background: var(--surface-muted); animation: subtle-pulse 1.4s ease-in-out infinite; }
 
 .premium-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #3f3f46 transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 .premium-scrollbar::-webkit-scrollbar {
@@ -230,7 +224,7 @@ select {
 }
 
 .premium-scrollbar::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: var(--border-strong);
   border: 3px solid transparent;
   border-radius: 999px;
   background-clip: padding-box;

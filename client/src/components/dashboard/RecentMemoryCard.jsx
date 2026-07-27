@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Badge from "../ui/Badge";
 import Card from "../ui/Card";
+import MediaThumbnail from "../memory/MediaThumbnail";
 
 function RecentMemoryCard({ memory }) {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ function RecentMemoryCard({ memory }) {
         aria-label={`Open memory ${memory.fileName}`}
       >
         <div className="relative flex min-h-32 items-end overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4">
-          {memory.fileType === "image" && memory.fileUrl && <img src={memory.fileUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-200 group-hover:scale-[1.02]" />}
+          <MediaThumbnail memory={memory} className="absolute inset-0 h-full w-full opacity-70" compact />
           <Badge className="bg-[var(--surface-panel)]">{memory.fileType || memory.category || "Memory"}</Badge>
         </div>
         <div className="p-4">

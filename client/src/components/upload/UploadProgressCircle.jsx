@@ -1,4 +1,4 @@
-function UploadProgressCircle({ progress }) {
+function UploadProgressCircle({ progress, active = true }) {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (progress / 100) * circumference;
@@ -10,7 +10,7 @@ function UploadProgressCircle({ progress }) {
         cx="22"
         cy="22"
         r={radius}
-        stroke="#60a5fa"
+        stroke={active ? "#60a5fa" : "#71717a"}
         strokeWidth="4"
         fill="none"
         strokeLinecap="round"

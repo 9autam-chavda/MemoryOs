@@ -2,10 +2,11 @@ import axios from "axios";
 import api from "./api";
 import { getToken } from "../utils/token";
 
-const getMemories = async (fileType = "all") => {
+const getMemories = async (fileType = "all", options = {}) => {
   const response = await api.get("/memory", {
     params: {
       fileType,
+      ...(options.limit ? { limit: options.limit } : {}),
     },
   });
 
@@ -27,7 +28,7 @@ const deleteMemory = async (id) => {
   return response.data;
 };
 
-const uploadMemory = async (formData, onProgress) => {
+const uploadMemory = async (formData, onProgress, signal) => {
   const response = await axios({
     method: "post",
     url: "http://localhost:5000/api/memory/upload",
@@ -35,16 +36,22 @@ const uploadMemory = async (formData, onProgress) => {
     headers: {
       Authorization: `Bearer ${getToken()}`,
     },
+    signal,
 
     onUploadProgress: (event) => {
       if (!event.total) return;
 
-      const progress = Math.round((event.loaded * 100) / event.total);
+      const progress = Math.min(95, Math.round((event.loaded * 95) / event.total));
 
       onProgress?.(progress);
     },
   });
 
+  return response.data;
+};
+
+const getUploadStatus = async (jobId, signal) => {
+  const response = await api.get(`/memory/upload-status/${jobId}`, { signal });
   return response.data;
 };
 
@@ -85,6 +92,7 @@ export default {
   getRelatedMemories,
   deleteMemory,
   uploadMemory,
+  getUploadStatus,
   searchMemories,
   toggleFavorite,
   createShare,

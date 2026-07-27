@@ -33,9 +33,11 @@ function UploadManager() {
 
       {!collapsed && (
         <div className="max-h-80 overflow-y-auto">
-          {uploads.map((upload) => (
-            <UploadItem key={upload.id} upload={upload} />
-          ))}
+         {uploads
+  .filter(Boolean)
+  .map((upload) => (
+    <UploadItem key={upload.id} upload={upload} />
+  ))}
         </div>
       )}
     </div>

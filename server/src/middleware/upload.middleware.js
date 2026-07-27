@@ -11,6 +11,12 @@ const fileFilter = (req, file, cb) => {
     "video/",
     "text/plain",
     "text/markdown",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   ];
 
   const isAllowed = allowedTypes.some(type => {

@@ -1,8 +1,9 @@
-const imagekitService = require("./imagekit.service");
+const mediaService = require("./media.service");
 const extractService = require("./extract.service");
 const MemoryItem = require("../models/MemoryItem");
 const aiService = require("./ai.service");
 const cosineSimilarity = require("../utils/cosineSimilarity");
+const processingService = require("./processing.service");
 
 const toMemoryCard = (memory) => {
   const text = memory.extractedText || "";
@@ -10,7 +11,10 @@ const toMemoryCard = (memory) => {
   return {
     id: memory._id,
     fileName: memory.fileName,
-    fileUrl: memory.fileUrl,
+    fileUrl: memory.media?.secureUrl,
+    previewUrl: mediaService.getPreviewUrl(memory.media),
+    playbackUrl: mediaService.getVideoUrl(memory.media),
+    downloadUrl: mediaService.getDownloadUrl(memory.media),
     fileType: memory.fileType,
     category: memory.category,
     isFavorite: !!memory.isFavorite,
@@ -49,51 +53,74 @@ const getFileType = (mimeType) => {
     return "text";
   }
 
-  return "other";
+  return "document";
 };
 
-const uploadMemory = async (file, userId) => {
+const uploadMemory = async (file, userId, onStage) => {
 
-  const uploadResult = await imagekitService.uploadFile(file);
+  await onStage?.("cloudinary", "Uploading to cloud...");
+  const uploadedMedia = await mediaService.upload(file);
 
-  const extractedData = await extractService.extractText(file);
+  try {
+    await onStage?.("cloudinary_complete", "Cloud upload complete. Processing file...");
+      const memory = await MemoryItem.create({
 
-  const memory = await MemoryItem.create({
-    userId,
+      userId,
 
-    fileName: file.originalname,
+      fileName: file.originalname,
 
-    fileUrl: uploadResult.fileUrl,
+      media: uploadedMedia,
 
-    imageKitFileId: uploadResult.fileId,
+      fileType: getFileType(file.mimetype),
 
-    fileType: getFileType(file.mimetype),
+      extractedText: "",
 
-    extractedText: extractedData.extractedText,
+      wordCount: 0,
 
-    wordCount: extractedData.wordCount,
+      summary: "",
 
-    summary: extractedData.summary,
+      category: "uncategorized",
 
-    category: extractedData.category,
+      tags: [],
 
-    tags: extractedData.tags,
+      embedding: [],
 
-    embedding: extractedData.embedding,
+      metadata: {},
 
-    metadata: {
-      size: file.size,
-      mimeType: file.mimetype,
-    },
+      processingStatus: "queued",
 
-    isProcessed: true,
-    isFavorite: false,
+      processingStep: "Queued",
+
+      processingProgress: 0,
+
+      isFavorite: false,
   });
 
-  return memory;
+ processingService
+    .processMemory(
+        memory._id,
+        file,
+        onStage
+    )
+    .catch((error) => {
+        console.error(
+            "Background processing failed:",
+            error
+        );
+    });
+
+    return memory;
+  } catch (error) {
+    try {
+      await mediaService.deleteFile(uploadedMedia.publicId, uploadedMedia.resourceType);
+    } catch (cleanupError) {
+      console.error("Unable to clean up failed media upload", cleanupError.message);
+    }
+    throw error;
+  }
 };
 
-const getUserMemories = async (userId, fileType) => {
+const getUserMemories = async (userId, fileType, limit) => {
 
   const filter = {
     userId,
@@ -107,11 +134,24 @@ const getUserMemories = async (userId, fileType) => {
     }
   }
 
-  const memories = await MemoryItem.find(filter).sort({
-    createdAt: -1,
-  });
+  const query = MemoryItem.find(filter).sort({ createdAt: -1 });
+  const requestedLimit = Number.parseInt(limit, 10);
+  if (Number.isInteger(requestedLimit) && requestedLimit > 0) {
+    query.limit(Math.min(requestedLimit, 50));
+  }
+  const [memories, totalCount, favoriteCount, categories] = await Promise.all([
+    query,
+    MemoryItem.countDocuments({ userId }),
+    MemoryItem.countDocuments({ userId, isFavorite: true }),
+    MemoryItem.distinct("category", { userId }),
+  ]);
 
-  return memories.map(toMemoryCard);
+  return {
+    memories: memories.map(toMemoryCard),
+    totalCount,
+    favoriteCount,
+    categoryCount: categories.filter(Boolean).length,
+  };
 };
 
 const deleteMemory = async (memoryId, userId) => {
@@ -126,7 +166,7 @@ const deleteMemory = async (memoryId, userId) => {
     throw new Error("Unauthorized");
   }
 
-  await imagekitService.deleteFile(memory.imageKitFileId);
+  await mediaService.deleteFile(memory.media?.publicId, memory.media?.resourceType);
 
   await MemoryItem.findByIdAndDelete(memoryId);
 
@@ -201,7 +241,10 @@ const getMemoryById = async (memoryId, userId) => {
 
     fileName: memory.fileName,
 
-    fileUrl: memory.fileUrl,
+    fileUrl: memory.media?.secureUrl,
+    previewUrl: mediaService.getPreviewUrl(memory.media),
+    playbackUrl: mediaService.getVideoUrl(memory.media),
+    downloadUrl: mediaService.getDownloadUrl(memory.media),
 
     fileType: memory.fileType,
 
@@ -221,7 +264,18 @@ const getMemoryById = async (memoryId, userId) => {
     shareEnabled: !!memory.shareEnabled,
     shareToken: memory.shareToken,
 
+    metadata: {
+      ...(memory.metadata?.toObject?.() || memory.metadata || {}),
+      size: memory.media?.bytes,
+      mimeType: memory.media?.mimeType,
+      width: memory.media?.width,
+      height: memory.media?.height,
+      duration: memory.media?.duration,
+      format: memory.media?.format,
+    },
+
     createdAt: memory.createdAt,
+    updatedAt: memory.updatedAt,
   };
 };
 
@@ -256,7 +310,7 @@ const getRelatedMemories = async (memoryId, userId) => {
       category: 1,
       tags: 1,
       fileType: 1,
-      fileUrl: 1,
+      media: 1,
       createdAt: 1,
       embedding: 1,
     }
@@ -279,15 +333,13 @@ const getRelatedMemories = async (memoryId, userId) => {
       category: candidate.category || "uncategorized",
       tags: Array.isArray(candidate.tags) ? candidate.tags : [],
       fileType: candidate.fileType,
-      thumbnail: candidate.fileType === "image" ? candidate.fileUrl : null,
+      thumbnail: mediaService.getPreviewUrl(candidate.media),
       createdAt: candidate.createdAt,
       similarity: Math.round(similarity * 100),
     }));
 
   return scoredMemories;
 };
-
-// exports moved to bottom after function definitions
 
 const toggleFavorite = async (memoryId, userId) => {
   const memory = await MemoryItem.findById(memoryId);
@@ -370,11 +422,19 @@ const getSharedByToken = async (token) => {
   return {
     id: memory._id,
     fileName: memory.fileName,
-    fileUrl: memory.fileUrl,
+    fileUrl: memory.media?.secureUrl,
+    previewUrl: mediaService.getPreviewUrl(memory.media),
+    playbackUrl: mediaService.getVideoUrl(memory.media),
+    downloadUrl: mediaService.getDownloadUrl(memory.media),
     fileType: memory.fileType,
     summary: memory.summary,
     tags: memory.tags,
-    metadata: memory.metadata,
+    metadata: {
+      ...(memory.metadata?.toObject?.() || memory.metadata || {}),
+      size: memory.media?.bytes,
+      mimeType: memory.media?.mimeType,
+      duration: memory.media?.duration,
+    },
     createdAt: memory.createdAt,
   };
 };

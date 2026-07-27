@@ -1,11 +1,19 @@
 from fastapi import FastAPI
-from routes import analyze_router, assistant_router, embedding_router, transcribe_router
+from routes import (
+    analyze_router,
+    assistant_router,
+    embedding_router,
+    transcribe_router,
+)
 
 app = FastAPI(title="MemoryOS AI Service")
 
+
 @app.get("/")
 def home():
-    return {"status": "MemoryOS AI Service Running"}
+    return {
+        "status": "MemoryOS AI Service Running"
+    }
 
 
 app.include_router(analyze_router)

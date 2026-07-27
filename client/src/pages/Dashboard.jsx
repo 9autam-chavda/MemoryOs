@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Heart, MessageSquare, Search, Sparkles } from "lucide-react";
+import { ChevronRight, Heart, MessageSquare, Search, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
 import RecentConversationCard from "../components/dashboard/RecentConversationCard";
-import RecentMemoryCard from "../components/dashboard/RecentMemoryCard";
 import SectionHeader from "../components/dashboard/SectionHeader";
 import AppLayout from "../components/layout/AppLayout";
+import MemoryCard from "../components/memory/MemoryCard";
 import EmptyState from "../components/ui/EmptyState";
+import Button from "../components/ui/Button";
 import StatCard from "../components/ui/StatCard";
 import { useAuth } from "../contexts/AuthContext";
 import memoryService from "../services/memory.service";
@@ -15,7 +17,9 @@ import memorySessionService from "../services/memorySession.service";
 
 function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [memories, setMemories] = useState([]);
+  const [memoryStats, setMemoryStats] = useState({ totalCount: 0, favoriteCount: 0, categoryCount: 0 });
   const [sessions, setSessions] = useState([]);
   const [sessionPreviews, setSessionPreviews] = useState({});
   const [loading, setLoading] = useState(true);
@@ -27,11 +31,18 @@ function Dashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       const [memoryResult, sessionResult] = await Promise.allSettled([
-        memoryService.getMemories(),
+        memoryService.getMemories("all", { limit: 4 }),
         memorySessionService.getSessions(),
       ]);
 
-      if (memoryResult.status === "fulfilled") setMemories(memoryResult.value.data || []);
+      if (memoryResult.status === "fulfilled") {
+        setMemories(memoryResult.value.data || []);
+        setMemoryStats({
+          totalCount: memoryResult.value.totalCount || 0,
+          favoriteCount: memoryResult.value.favoriteCount || 0,
+          categoryCount: memoryResult.value.categoryCount || 0,
+        });
+      }
       else console.error(memoryResult.reason);
 
       if (sessionResult.status === "fulfilled") {
@@ -60,14 +71,16 @@ function Dashboard() {
     loadDashboard();
   }, []);
 
-  const recentMemories = [...memories]
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 6);
+  const recentMemories = memories.slice(0, 4);
   const recentSessions = [...sessions]
     .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
     .slice(0, 4);
-  const favoriteCount = memories.filter((memory) => memory.isFavorite).length;
-  const categoryCount = new Set(memories.map((memory) => memory.category || memory.fileType).filter(Boolean)).size;
+
+  const viewAllAction = (label, onClick) => (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-0.5 bg-transparent p-0 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]">
+      {label}<ChevronRight size={15} strokeWidth={1.8} />
+    </button>
+  );
 
   return (
     <AppLayout>
@@ -77,9 +90,9 @@ function Dashboard() {
 
           <section aria-label="Memory overview">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <StatCard compact title="Memories" value={memories.length} icon={Sparkles} />
-              <StatCard compact title="Categories" value={categoryCount} icon={Search} />
-              <StatCard compact title="Favorites" value={favoriteCount} icon={Heart} />
+              <StatCard compact title="Memories" value={memoryStats.totalCount} icon={Sparkles} />
+              <StatCard compact title="Categories" value={memoryStats.categoryCount} icon={Search} />
+              <StatCard compact title="Favorites" value={memoryStats.favoriteCount} icon={Heart} />
               <StatCard compact title="Assistant sessions" value={sessions.length} icon={MessageSquare} />
             </div>
           </section>
@@ -87,12 +100,13 @@ function Dashboard() {
           <section aria-labelledby="recent-memories">
             <SectionHeader
               title={<span id="recent-memories">Recent memories</span>}
+              action={memoryStats.totalCount > 4 ? viewAllAction("View all", () => navigate("/gallery")) : null}
             />
             <div className="mt-4">
               {recentMemories.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{recentMemories.map((memory) => <RecentMemoryCard key={memory.id} memory={memory} />)}</div>
+                <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">{recentMemories.map((memory) => <MemoryCard key={memory.id} memory={memory} variant="dashboard" />)}</div>
               ) : (
-                <EmptyState compact icon={Search} title="No memories yet" description="Your saved memories will appear here once they are available to search." />
+                <EmptyState compact icon={Search} title="No memories yet" description="Upload your first memory to begin building your second brain." action={<Button as="a" href="/gallery">Upload memory</Button>} />
               )}
             </div>
           </section>
@@ -100,6 +114,7 @@ function Dashboard() {
           <section aria-labelledby="recent-conversations">
             <SectionHeader
               title={<span id="recent-conversations">Recent assistant conversations</span>}
+              action={sessions.length > 4 ? viewAllAction("View all", () => navigate("/settings?tab=history")) : null}
             />
             <div className="mt-4">
               {recentSessions.length ? (

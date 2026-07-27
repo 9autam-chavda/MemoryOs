@@ -11,6 +11,7 @@ import Card from "../components/ui/Card";
 import EmptyState from "../components/ui/EmptyState";
 import Skeleton from "../components/ui/Skeleton";
 import memoryService from "../services/memory.service";
+import { getDownloadUrl, getImageUrl, getOriginalUrl, getVideoThumbnail, getVideoUrl } from "../utils/media.util";
 
 const formatDate = (value) => value ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : null;
 const formatBytes = (value) => value ? `${(Number(value) / 1024).toFixed(Number(value) >= 1024 ? 1 : 0)} KB` : null;
@@ -26,11 +27,13 @@ function MemoryDetails() {
   const [activeTab, setActiveTab] = useState("overview");
   const [relatedMemories, setRelatedMemories] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
     document.title = "Memory details · MemoryOS";
     const load = async () => {
-      setLoading(true); setRelatedLoading(true);
+      setLoading(true); setRelatedLoading(true); setVideoReady(false); setVideoFailed(false);
       const [item, related] = await Promise.allSettled([memoryService.getMemoryById(id), memoryService.getRelatedMemories(id)]);
       if (item.status === "fulfilled") { setMemory(item.value.data); setIsFav(!!item.value.data.isFavorite); }
       else toast.error("Failed to load memory.");
@@ -55,10 +58,10 @@ function MemoryDetails() {
   if (!memory) return <AppLayout><EmptyState compact title="Memory not found" description="This memory may have been removed or is no longer available." /></AppLayout>;
 
   const renderPreview = () => {
-    if (memory.fileType === "image") return <img src={memory.fileUrl} alt={memory.fileName} className="max-h-[680px] w-full object-contain" />;
-    if (memory.fileType === "pdf") return <iframe src={memory.fileUrl} title={memory.fileName} className="h-[680px] w-full bg-white" />;
-    if (memory.fileType === "audio") return <div className="flex min-h-80 items-center justify-center p-8"><audio controls className="w-full max-w-xl"><source src={memory.fileUrl} type={memory.metadata?.mimeType || "audio/mpeg"} /></audio></div>;
-    if (memory.fileType === "video") return <video controls className="max-h-[680px] w-full bg-black object-contain"><source src={memory.fileUrl} /></video>;
+    if (memory.fileType === "image") return <img src={getImageUrl(memory) || getOriginalUrl(memory)} alt={memory.fileName} className="max-h-[680px] w-full object-contain" />;
+    if (memory.fileType === "pdf") return <iframe src={getOriginalUrl(memory)} title={memory.fileName} className="h-[680px] w-full bg-white" />;
+    if (memory.fileType === "audio") return <div className="flex min-h-80 items-center justify-center p-8"><audio controls preload="metadata" className="w-full max-w-xl"><source src={getOriginalUrl(memory)} type={memory.metadata?.mimeType || "audio/mpeg"} /></audio></div>;
+    if (memory.fileType === "video") return <div className="relative w-full"><video controls preload="metadata" poster={getVideoThumbnail(memory) || undefined} onLoadedData={() => setVideoReady(true)} onError={() => setVideoFailed(true)} className="max-h-[680px] w-full bg-black object-contain"><source src={getVideoUrl(memory)} type="video/mp4" /></video>{!videoReady && !videoFailed && <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/25 text-sm text-white">Loading video…</div>}{videoFailed && <div className="absolute inset-0 grid place-items-center bg-[var(--surface-muted)] text-sm text-[var(--text-secondary)]">Video preview is unavailable. Use Download to view the original file.</div>}</div>;
     return <div className="premium-scrollbar max-h-[680px] overflow-y-auto bg-[#f6f3eb] p-6 text-zinc-900"><pre className="whitespace-pre-wrap text-sm leading-7">{memory.extractedText || "No extracted text available."}</pre></div>;
   };
   const tabs = [["overview", "Overview"], ["text", "Extracted text"], ["metadata", "Metadata"]];
@@ -66,7 +69,7 @@ function MemoryDetails() {
   return <AppLayout><div className="mx-auto w-full max-w-7xl space-y-5 py-3 sm:py-5">
     <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-3"><Button variant="ghost" className="h-9 min-h-9 w-9 shrink-0 p-0" onClick={() => navigate("/gallery")} aria-label="Back to gallery"><ArrowLeft size={17} /></Button><div className="min-w-0"><h1 className="truncate text-lg font-semibold tracking-tight text-[var(--text-primary)] sm:text-xl">{memory.fileName}</h1><div className="mt-1 flex flex-wrap gap-2"><Badge>{memory.category || "Memory"}</Badge><Badge>{memory.fileType || "File"}</Badge></div></div></div>
-      <div className="flex flex-wrap gap-2"><Button as="a" href={memory.fileUrl} download variant="secondary"><Download size={16} />Download</Button><Button variant="secondary" onClick={openShare} aria-label="Share memory"><Share2 size={16} />Share</Button><Button variant="secondary" onClick={toggleFavorite} aria-label={isFav ? "Remove favorite" : "Add favorite"}><Heart size={16} className={isFav ? "fill-current text-[var(--danger)]" : ""} /><span className="sr-only">Favorite</span></Button><Button variant="danger" onClick={handleDelete} aria-label="Delete memory"><Trash2 size={16} /><span className="sr-only">Delete</span></Button></div>
+      <div className="flex flex-wrap gap-2"><Button as="a" href={getDownloadUrl(memory)} variant="secondary"><Download size={16} />Download</Button><Button variant="secondary" onClick={openShare} aria-label="Share memory"><Share2 size={16} />Share</Button><Button variant="secondary" onClick={toggleFavorite} aria-label={isFav ? "Remove favorite" : "Add favorite"}><Heart size={16} className={isFav ? "fill-current text-[var(--danger)]" : ""} /><span className="sr-only">Favorite</span></Button><Button variant="danger" onClick={handleDelete} aria-label="Delete memory"><Trash2 size={16} /><span className="sr-only">Delete</span></Button></div>
     </header>
     <div className="grid gap-5 xl:grid-cols-[minmax(0,2.3fr)_minmax(18rem,1fr)]">
       <Card className="overflow-hidden p-2 sm:p-3"><div className="flex min-h-80 items-center justify-center overflow-hidden rounded-[calc(var(--radius-lg)-0.35rem)] bg-[var(--surface-muted)]">{renderPreview()}</div></Card>

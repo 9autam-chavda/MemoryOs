@@ -16,7 +16,7 @@ const memoryItemSchema = new mongoose.Schema(
         "audio",
         "video",
         "text",
-        "other",
+        "document",
       ],
       required: true,
     },
@@ -26,14 +26,23 @@ const memoryItemSchema = new mongoose.Schema(
       required: true,
     },
 
-    fileUrl: {
-      type: String,
-      required: true,
-    },
-
-    imageKitFileId: {
-      type: String,
-      required: true,
+    media: {
+      url: String,
+      secureUrl: { type: String, required: true },
+      publicId: { type: String, required: true },
+      resourceType: {
+        type: String,
+        enum: ["image", "pdf", "audio", "video", "document"],
+        required: true,
+      },
+      format: String,
+      bytes: Number,
+      width: Number,
+      height: Number,
+      duration: Number,
+      originalFilename: String,
+      mimeType: String,
+      provider: { type: String, enum: ["cloudinary"], required: true },
     },
 
     extractedText: {
@@ -68,26 +77,6 @@ const memoryItemSchema = new mongoose.Schema(
     },
 
     metadata: {
-      size: {
-        type: Number,
-      },
-
-      mimeType: {
-        type: String,
-      },
-
-      width: {
-        type: Number,
-      },
-
-      height: {
-        type: Number,
-      },
-
-      duration: {
-        type: Number,
-      },
-
       pageCount: {
         type: Number,
       },
@@ -96,13 +85,39 @@ const memoryItemSchema = new mongoose.Schema(
     processingStatus: {
       type: String,
       enum: [
-        "pending",
+        "queued",
         "processing",
         "completed",
         "failed",
       ],
-      default: "completed",
+      default: "queued",
     },
+
+    processingStep: {
+      type: String,
+      default: "Queued",
+    },
+
+    processingProgress: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+
+    processingError: {
+      type: String,
+      default: "",
+    },
+
+    processingStartedAt: {
+      type: Date,
+    },
+
+    processingCompletedAt: {
+      type: Date,
+    },
+    
     isFavorite: {
       type: Boolean,
       default: false,

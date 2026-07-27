@@ -16,6 +16,12 @@ router.post(
   memoryController.uploadMemory
 );
 
+router.get(
+  "/upload-status/:jobId",
+  protect,
+  memoryController.getUploadStatus
+);
+
 // Get All Memories
 router.get(
   "/",

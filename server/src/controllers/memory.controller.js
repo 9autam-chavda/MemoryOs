@@ -2,26 +2,52 @@ const memoryService =
   require(
     "../services/memory.service"
   );
+const UploadJob = require("../models/UploadJob");
+
+const updateUploadJob = (jobId, updates) => UploadJob.findByIdAndUpdate(jobId, updates).exec();
 
 const uploadMemory =
   async (req, res) => {
     try {
 
-      const memory =
-        await memoryService
-          .uploadMemory(
-            req.file,
-            req.user.id
-          );
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "A supported file is required",
+        });
+      }
 
-      res.status(201).json({
+      const job = await UploadJob.create({
+        userId: req.user.id,
+        status: "queued",
+        stage: "queued",
+        message: "Queued",
+      });
+
+      res.status(202).json({
         success: true,
-        data: memory,
+        data: { jobId: job._id, status: job.status },
+      });
+
+      setImmediate(async () => {
+        const onStage = (stage, message) => updateUploadJob(job._id, {
+          status: "processing",
+          stage,
+          message,
+        });
+
+        try {
+          const memory = await memoryService.uploadMemory(req.file, req.user.id, onStage);
+          await updateUploadJob(job._id, { status: "completed", stage: "completed", message: "Completed", memoryId: memory._id });
+        } catch (error) {
+          console.error("Memory upload job failed", error.message);
+          await updateUploadJob(job._id, { status: "failed", stage: "failed", message: "Upload failed", error: error.message });
+        }
       });
 
     } catch (error) {
 
-      res.status(500).json({
+      res.status(error.status || 500).json({
         success: false,
         message:
           error.message,
@@ -30,20 +56,44 @@ const uploadMemory =
     }
 };
 
+const getUploadStatus = async (req, res) => {
+  try {
+    const job = await UploadJob.findOne({ _id: req.params.jobId, userId: req.user.id }).lean();
+    if (!job) return res.status(404).json({ success: false, message: "Upload job not found" });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: job._id,
+        status: job.status,
+        stage: job.stage,
+        message: job.message,
+        error: job.error,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const getMemories = async (req, res) => {
 
     try {
 
-        const memories =
+        const result =
             await memoryService.getUserMemories(
                 req.user.id,
-                req.query.fileType
+                req.query.fileType,
+                req.query.limit
             );
 
         res.status(200).json({
             success: true,
-            count: memories.length,
-            data: memories
+            count: result.memories.length,
+            totalCount: result.totalCount,
+            favoriteCount: result.favoriteCount,
+            categoryCount: result.categoryCount,
+            data: result.memories
         });
 
     } catch (error) {
@@ -74,7 +124,7 @@ const deleteMemory = async (req, res) => {
 
     } catch (error) {
 
-        res.status(400).json({
+        res.status(error.status || 400).json({
             success: false,
             message: error.message
         });
@@ -185,6 +235,7 @@ const disableShare = async (req, res) => {
 
 module.exports = {
   uploadMemory,
+  getUploadStatus,
   getMemories,
   deleteMemory,
   searchMemories,

@@ -7,7 +7,7 @@ const AI_BASE_URL = (
 
 const debug = (...details) => {
   if (process.env.RAG_DEBUG === "true") {
-    console.info("[RAG AI Client]", ...details);
+    console.info("[AI Client]", ...details);
   }
 };
 
@@ -16,12 +16,26 @@ const debug = (...details) => {
 // ===========================================
 
 const analyzeText = async (text) => {
+  debug("REQUEST", {
+    endpoint: "/analyze",
+    textLength: text?.length,
+  });
+
   const response = await axios.post(
     `${AI_BASE_URL}/analyze`,
     { text }
   );
 
-  return response.data;
+  debug("RESPONSE", {
+    success: response.data.success,
+  });
+
+  return {
+    summary: response.data.summary,
+    category: response.data.category,
+    tags: response.data.tags,
+    embedding: response.data.embedding,
+  };
 };
 
 // ===========================================
@@ -40,14 +54,14 @@ const generateEmbedding = async (text) => {
   );
 
   debug("RESPONSE", {
-    dimensions: response.data?.embedding?.length,
+    dimensions: response.data.embedding?.length,
   });
 
   return response.data.embedding;
 };
 
 // ===========================================
-// Ask MemoryOS Assistant
+// Assistant
 // ===========================================
 
 const askAssistant = async ({
@@ -55,7 +69,6 @@ const askAssistant = async ({
   memories,
   history = [],
 }) => {
-
   debug("REQUEST", {
     endpoint: "/assistant",
     questionLength: question?.length,
@@ -73,8 +86,8 @@ const askAssistant = async ({
   );
 
   debug("RESPONSE", {
-    success: response.data?.success,
-    answerLength: response.data?.answer?.length,
+    success: response.data.success,
+    answerLength: response.data.answer?.length,
   });
 
   return response.data;

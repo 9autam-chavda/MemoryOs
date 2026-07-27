@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import AppLayout from "../components/layout/AppLayout";
 import memoryService from "../services/memory.service";
+import { getImageUrl, getOriginalUrl } from "../utils/media.util";
 
 function SharedMemory() {
   const { token } = useParams();
@@ -54,7 +55,7 @@ function SharedMemory() {
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6">
           <div className="rounded-xl overflow-hidden bg-zinc-950 text-zinc-100 shadow-sm">
             {memory.fileType === "image" ? (
-              <img src={memory.fileUrl} alt={memory.fileName} className="w-full object-contain" />
+              <img src={getImageUrl(memory) || getOriginalUrl(memory)} alt={memory.fileName} className="w-full object-contain" />
             ) : (
               <div className="p-5">
                 <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">{memory.summary || "No summary available."}</p>
