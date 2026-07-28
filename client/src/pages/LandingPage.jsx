@@ -778,7 +778,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-8 text-sm text-[var(--text-secondary)]">
 
             <a
-              href="https://github.com"
+              href="https://github.com/9autam-chavda"
               target="_blank"
               rel="noreferrer"
               className="hover:text-white"
