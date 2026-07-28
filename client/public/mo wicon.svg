@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="199 210 907 737">
+  <title>MemoryOS icon — diamond cluster</title>
+  <desc>A cluster of rounded pills and dots arranged in a symmetric diamond rhythm, colored by a single vertical gradient from purple at top to blue at bottom.</desc>
+  <defs>
+    <linearGradient id="brandFlow3" gradientUnits="userSpaceOnUse" x1="600" y1="250" x2="600" y2="907">
+      <stop offset="0.047" stop-color="#7422FC"/>
+      <stop offset="0.201" stop-color="#6F25FC"/>
+      <stop offset="0.388" stop-color="#5B38FB"/>
+      <stop offset="0.574" stop-color="#3A57FB"/>
+      <stop offset="0.758" stop-color="#017CFA"/>
+      <stop offset="0.945" stop-color="#00A3F7"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="url(#brandFlow3)">
+    <rect x="510" y="250" width="152" height="63" rx="31.5"/>
+
+    <circle cx="326.5" cy="379.5" r="40"/>
+    <rect x="429" y="347" width="466" height="71" rx="35.5"/>
+
+    <circle cx="275.5" cy="504.5" r="36"/>
+    <rect x="360" y="469" width="122" height="72" rx="36"/>
+    <rect x="531" y="469" width="486" height="72" rx="36"/>
+
+    <circle cx="328.5" cy="626.5" r="38.5"/>
+    <rect x="420" y="592" width="171" height="70" rx="35"/>
+    <rect x="648" y="592" width="418" height="70" rx="35"/>
+
+    <circle cx="422.5" cy="749.5" r="39.5"/>
+    <rect x="524" y="711" width="348" height="73" rx="36.5"/>
+
+    <rect x="463" y="835" width="285" height="72" rx="36"/>
+  </g>
+</svg>

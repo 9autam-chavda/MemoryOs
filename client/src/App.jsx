@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
+import LandingPage from "./pages/LandingPage";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -46,10 +48,10 @@ function App() {
 
       <Routes>
 
-        {/* Default Redirect */}
+        {/* Landing Page */}
         <Route
           path="/"
-          element={<Navigate to="/login" replace />}
+          element={<LandingPage />}
         />
 
         {/* Public Routes */}
@@ -98,6 +100,7 @@ function App() {
           }
         />
 
+        {/* Public Shared Memory */}
         <Route
           path="/shared/:token"
           element={<SharedMemory />}
@@ -105,6 +108,7 @@ function App() {
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
+
           <Route
             path="/dashboard"
             element={<Dashboard />}
@@ -129,12 +133,13 @@ function App() {
             path="/settings"
             element={<Settings />}
           />
+
         </Route>
 
-        {/* Unknown Route */}
+        {/* 404 */}
         <Route
           path="*"
-          element={<Navigate to="/login" replace />}
+          element={<Navigate to="/" replace />}
         />
 
       </Routes>
