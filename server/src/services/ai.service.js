@@ -5,9 +5,14 @@ const AI_BASE_URL = (
   "http://127.0.0.1:8000"
 ).replace(/\/$/, "");
 
+const client = axios.create({
+  baseURL: AI_BASE_URL,
+  timeout: Number(process.env.AI_TIMEOUT || 60000),
+});
+
 const debug = (...details) => {
   if (process.env.RAG_DEBUG === "true") {
-    console.info("[AI Client]", ...details);
+    console.info("[AI Service]", ...details);
   }
 };
 
@@ -16,25 +21,29 @@ const debug = (...details) => {
 // ===========================================
 
 const analyzeText = async (text) => {
+  if (!text || !text.trim()) {
+    throw new Error("Text is required for analysis.");
+  }
+
   debug("REQUEST", {
     endpoint: "/analyze",
-    textLength: text?.length,
+    textLength: text.length,
   });
 
-  const response = await axios.post(
-    `${AI_BASE_URL}/analyze`,
-    { text }
-  );
+  const { data } = await client.post("/analyze", {
+    text,
+  });
 
   debug("RESPONSE", {
-    success: response.data.success,
+    endpoint: "/analyze",
+    success: data.success,
   });
 
   return {
-    summary: response.data.summary,
-    category: response.data.category,
-    tags: response.data.tags,
-    embedding: response.data.embedding,
+    summary: data.summary,
+    category: data.category,
+    tags: data.tags,
+    embedding: data.embedding,
   };
 };
 
@@ -43,58 +52,28 @@ const analyzeText = async (text) => {
 // ===========================================
 
 const generateEmbedding = async (text) => {
+  if (!text || !text.trim()) {
+    throw new Error("Text is required for embedding.");
+  }
+
   debug("REQUEST", {
     endpoint: "/embedding",
-    textLength: text?.length,
+    textLength: text.length,
   });
 
-  const response = await axios.post(
-    `${AI_BASE_URL}/embedding`,
-    { text }
-  );
+  const { data } = await client.post("/embedding", {
+    text,
+  });
 
   debug("RESPONSE", {
-    dimensions: response.data.embedding?.length,
+    endpoint: "/embedding",
+    dimensions: data.embedding?.length,
   });
 
-  return response.data.embedding;
-};
-
-// ===========================================
-// Assistant
-// ===========================================
-
-const askAssistant = async ({
-  question,
-  memories,
-  history = [],
-}) => {
-  debug("REQUEST", {
-    endpoint: "/assistant",
-    questionLength: question?.length,
-    memories: memories?.length,
-    history: history?.length,
-  });
-
-  const response = await axios.post(
-    `${AI_BASE_URL}/assistant`,
-    {
-      question,
-      memories,
-      history,
-    }
-  );
-
-  debug("RESPONSE", {
-    success: response.data.success,
-    answerLength: response.data.answer?.length,
-  });
-
-  return response.data;
+  return data.embedding;
 };
 
 module.exports = {
   analyzeText,
   generateEmbedding,
-  askAssistant,
 };

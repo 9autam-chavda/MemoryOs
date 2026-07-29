@@ -1,39 +1,33 @@
-"""Memory-grounded assistant endpoint."""
-
 import logging
 import os
 
 from fastapi import APIRouter, HTTPException, status
 
-from ai.tasks.assistant import AssistantTask
-from .schemas import AssistantRequest
+from ai.services.llm_service import LLMService
+from .schemas import PromptRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+llm = LLMService()
+
 
 def _debug(message: str, **details):
     if os.getenv("RAG_DEBUG") == "true":
-        logger.info("[RAG assistant] %s %s", message, details)
+        logger.info("[Assistant] %s %s", message, details)
 
 
 @router.post("/assistant")
-def ask_assistant(request: AssistantRequest):
+def ask_assistant(request: PromptRequest):
 
     try:
 
         _debug(
-            "INPUT",
-            question=request.question,
-            memories=len(request.memories),
-            history=len(request.history),
+            "PROMPT",
+            length=len(request.prompt),
         )
 
-        answer = AssistantTask().execute(
-            question=request.question,
-            memories=request.memories,
-            history=request.history,
-        )
+        answer = llm.generate(request.prompt)
 
         return {
             "success": True,

@@ -7,9 +7,7 @@ load_dotenv()
 
 
 class OpenRouterProvider:
-
     def __init__(self):
-
         api_key = os.getenv("OPENROUTER_API_KEY")
 
         if not api_key:
@@ -22,33 +20,42 @@ class OpenRouterProvider:
 
         self.model = os.getenv(
             "OPENROUTER_MODEL",
-            "google/gemma-4-31b:free"
+            "google/gemma-3-27b-it:free",
+        )
+
+        self.temperature = float(
+            os.getenv("LLM_TEMPERATURE", "0.2")
+        )
+
+        self.max_tokens = int(
+            os.getenv("LLM_MAX_TOKENS", "700")
         )
 
     def generate(self, prompt: str) -> str:
+        if not prompt or not prompt.strip():
+            raise ValueError("Prompt cannot be empty.")
 
-        response = self.client.chat.completions.create(
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ],
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
 
-            model=self.model,
+            answer = response.choices[0].message.content
 
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are MemoryOS Assistant. "
-                        "Answer ONLY using the provided memory context. "
-                        "If the answer is not contained in the context, "
-                        "say you couldn't find it."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            if not answer:
+                raise ValueError("Model returned an empty response.")
 
-            temperature=0.2,
-            max_tokens=700,
-        )
+            return answer.strip()
 
-        return response.choices[0].message.content
+        except Exception as error:
+            raise RuntimeError(
+                f"OpenRouter generation failed: {error}"
+            ) from error

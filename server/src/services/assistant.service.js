@@ -1,5 +1,4 @@
-const retrievalService = require("./ai/retrieval.service");
-const aiService = require("./ai.service");
+const assistantPipeline = require("./ai/pipeline/assistant.pipeline");
 const memorySessionService = require("./memorySession.service");
 
 const debug = (...details) => {
@@ -9,14 +8,12 @@ const debug = (...details) => {
 };
 
 class AssistantService {
-  constructor({
-    retrieval = retrievalService,
-    aiClient = aiService,
+    constructor({
+    pipeline = assistantPipeline,
     sessionService = memorySessionService,
-    model = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free",
+    model = process.env.LLM_MODEL || "gemini-2.5-flash",
   } = {}) {
-    this.retrieval = retrieval;
-    this.aiClient = aiClient;
+    this.pipeline = pipeline;
     this.sessionService = sessionService;
     this.model = model;
   }
@@ -80,44 +77,16 @@ class AssistantService {
       content: question,
     });
 
-    // Retrieve relevant memories
-    const memories = await this.retrieval.retrieve(
-      question,
-      userId
-    );
-
-    debug("RETRIEVAL", {
-      memories: memories.length,
-      history: history.length,
-    });
-
-    if (memories.length === 0) {
-      const answer =
-        "I couldn't find anything related to your question in your uploaded memories.";
-
-      await this.sessionService.saveMessage({
-        sessionId,
-        role: "assistant",
-        content: answer,
-      });
-
-      return this.#response(
-        answer,
-        [],
-        startedAt
-      );
-    }
-
-    let response;
+    let result;
 
     try {
-      response = await this.aiClient.askAssistant({
+      result = await this.pipeline.process({
         question,
-        memories,
+        userId,
         history,
       });
     } catch (error) {
-      console.error("[AssistantService]", error);
+      console.error("[Assistant Pipeline]", error);
 
       const serviceError = new Error(
         "Unable to generate assistant response."
@@ -128,7 +97,9 @@ class AssistantService {
       throw serviceError;
     }
 
-    const answer = response?.answer;
+    const answer = result.answer;
+    const memories = result.memories || [];
+
 
     if (
       typeof answer !== "string" ||
@@ -144,10 +115,10 @@ class AssistantService {
       role: "assistant",
       content: answer,
       sources: memories.map((memory) => ({
-        id: memory.id,
-        title: memory.title,
+        id: memory._id,
+        title: memory.fileName,
         fileType: memory.fileType,
-        similarity: memory.similarity,
+        score: memory.finalScore,
       })),
       metadata: {
         model: this.model,
@@ -167,10 +138,10 @@ class AssistantService {
       success: true,
       answer,
       sources: memories.map((memory) => ({
-        id: memory.id,
-        title: memory.title,
+        id: memory._id,
+        title: memory.fileName,
         fileType: memory.fileType,
-        similarity: memory.similarity,
+        score: memory.finalScore,
       })),
       metadata: {
         model: this.model,
