@@ -34,20 +34,21 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     };
   }, [handleClose, isOpen]);
 
-  const handleUpload = () => {
-    if (!file) {
-      toast.error("Choose a file first.");
-      return;
-    }
+ const handleUpload = () => {
 
-    addUpload(file, () => {
-      toast.success("Memory uploaded.");
-      onUploadSuccess();
-    });
+  if (!file) {
+    toast.error("Choose a file first.");
+    return;
+  }
 
-    setFile(null);
-    onClose();
-  };
+  addUpload(file, () => {
+    toast.success("Memory uploaded.");
+    onUploadSuccess();
+  });
+
+  setFile(null);
+  onClose();
+};
 
   if (!isOpen) {
     return null;

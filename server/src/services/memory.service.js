@@ -5,17 +5,17 @@ const aiService = require("./ai.service");
 const cosineSimilarity = require("../utils/cosineSimilarity");
 const processingService = require("./processing.service");
 
+const toMediaResponse = (memory) => mediaService.toClientMedia(memory.media, memory.fileType);
+
 const toMemoryCard = (memory) => {
   const text = memory.extractedText || "";
 
   return {
     id: memory._id,
     fileName: memory.fileName,
-    fileUrl: memory.media?.secureUrl,
-    previewUrl: mediaService.getPreviewUrl(memory.media),
-    playbackUrl: mediaService.getVideoUrl(memory.media),
-    downloadUrl: mediaService.getDownloadUrl(memory.media),
     fileType: memory.fileType,
+    media: toMediaResponse(memory),
+    duration: memory.media?.duration,
     category: memory.category,
     isFavorite: !!memory.isFavorite,
     shareEnabled: !!memory.shareEnabled,
@@ -28,38 +28,10 @@ const toMemoryCard = (memory) => {
   };
 };
 
-const getFileType = (mimeType) => {
-
-  if (mimeType.startsWith("image/")) {
-    return "image";
-  }
-
-  if (mimeType === "application/pdf") {
-    return "pdf";
-  }
-
-  if (mimeType.startsWith("audio/")) {
-    return "audio";
-  }
-
-  if (mimeType.startsWith("video/")) {
-    return "video";
-  }
-
-  if (
-    mimeType === "text/plain" ||
-    mimeType === "text/markdown"
-  ) {
-    return "text";
-  }
-
-  return "document";
-};
-
-const uploadMemory = async (file, userId, onStage) => {
-
+const uploadMemory = async (file, userId, onStage, onMemoryCreated) => {
+  const fileType = mediaService.getFileType(file.mimetype);
   await onStage?.("cloudinary", "Uploading to cloud...");
-  const uploadedMedia = await mediaService.upload(file);
+  const uploadedMedia = await mediaService.upload(file, fileType);
 
   try {
     await onStage?.("cloudinary_complete", "Cloud upload complete. Processing file...");
@@ -71,7 +43,7 @@ const uploadMemory = async (file, userId, onStage) => {
 
       media: uploadedMedia,
 
-      fileType: getFileType(file.mimetype),
+      fileType,
 
       extractedText: "",
 
@@ -96,7 +68,9 @@ const uploadMemory = async (file, userId, onStage) => {
       isFavorite: false,
   });
 
- processingService
+  await onMemoryCreated?.(memory);
+
+  processingService
     .processMemory(
         memory._id,
         file,
@@ -112,7 +86,7 @@ const uploadMemory = async (file, userId, onStage) => {
     return memory;
   } catch (error) {
     try {
-      await mediaService.deleteFile(uploadedMedia.publicId, uploadedMedia.resourceType);
+      await mediaService.deleteFile(uploadedMedia, fileType);
     } catch (cleanupError) {
       console.error("Unable to clean up failed media upload", cleanupError.message);
     }
@@ -166,7 +140,7 @@ const deleteMemory = async (memoryId, userId) => {
     throw new Error("Unauthorized");
   }
 
-  await mediaService.deleteFile(memory.media?.publicId, memory.media?.resourceType);
+  await mediaService.deleteFile(memory.media, memory.fileType);
 
   await MemoryItem.findByIdAndDelete(memoryId);
 
@@ -241,12 +215,8 @@ const getMemoryById = async (memoryId, userId) => {
 
     fileName: memory.fileName,
 
-    fileUrl: memory.media?.secureUrl,
-    previewUrl: mediaService.getPreviewUrl(memory.media),
-    playbackUrl: mediaService.getVideoUrl(memory.media),
-    downloadUrl: mediaService.getDownloadUrl(memory.media),
-
     fileType: memory.fileType,
+    media: toMediaResponse(memory),
 
     extractedText: memory.extractedText,
 
@@ -317,12 +287,23 @@ const getRelatedMemories = async (memoryId, userId) => {
   ).lean();
 
   const scoredMemories = relatedMemories
-    .filter((candidate) => Array.isArray(candidate.embedding) && candidate.embedding.length > 0)
+    .filter(
+      (candidate) =>
+        Array.isArray(candidate.embedding) &&
+        candidate.embedding.length > 0
+    )
     .map((candidate) => ({
       candidate,
-      similarity: cosineSimilarity(memory.embedding, candidate.embedding),
+      similarity: cosineSimilarity(
+        memory.embedding,
+        candidate.embedding
+      ),
     }))
-    .filter(({ similarity }) => Number.isFinite(similarity) && similarity >= 0.65)
+    .filter(
+      ({ similarity }) =>
+        Number.isFinite(similarity) &&
+        similarity >= 0.30
+    )
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 5)
     .map(({ candidate, similarity }) => ({
@@ -333,13 +314,17 @@ const getRelatedMemories = async (memoryId, userId) => {
       category: candidate.category || "uncategorized",
       tags: Array.isArray(candidate.tags) ? candidate.tags : [],
       fileType: candidate.fileType,
-      thumbnail: mediaService.getPreviewUrl(candidate.media),
+      media: mediaService.toClientMedia(
+        candidate.media,
+        candidate.fileType
+      ),
+      duration: candidate.media?.duration,
       createdAt: candidate.createdAt,
       similarity: Math.round(similarity * 100),
     }));
 
   return scoredMemories;
-};
+}
 
 const toggleFavorite = async (memoryId, userId) => {
   const memory = await MemoryItem.findById(memoryId);
@@ -422,12 +407,10 @@ const getSharedByToken = async (token) => {
   return {
     id: memory._id,
     fileName: memory.fileName,
-    fileUrl: memory.media?.secureUrl,
-    previewUrl: mediaService.getPreviewUrl(memory.media),
-    playbackUrl: mediaService.getVideoUrl(memory.media),
-    downloadUrl: mediaService.getDownloadUrl(memory.media),
     fileType: memory.fileType,
+    media: toMediaResponse(memory),
     summary: memory.summary,
+    extractedText: memory.extractedText,
     tags: memory.tags,
     metadata: {
       ...(memory.metadata?.toObject?.() || memory.metadata || {}),
@@ -445,6 +428,7 @@ module.exports = {
   deleteMemory,
   searchMemories,
   getMemoryById,
+  getRelatedMemories,   
   toggleFavorite,
   createShare,
   disableShare,

@@ -1,5 +1,6 @@
 import { FileText, Image as ImageIcon, Music4, Play, Video } from "lucide-react";
 import { useState } from "react";
+import AudioThumbnail from "./AudioThumbnail";
 
 import { getFileIcon, getMediaType, getThumbnailUrl } from "../../utils/media.util";
 
@@ -19,7 +20,17 @@ function MediaThumbnail({ memory, className = "h-48", compact = false }) {
   const canRenderImage = thumbnailUrl && !failed;
 
   if (type === "audio") {
-    return <div className={`flex flex-col justify-between bg-[#111216] ${compact ? "p-2" : "p-5"} ${className}`}><div className="flex items-center justify-between"><Music4 size={compact ? 16 : 20} className="text-zinc-300" /><span className="text-[10px] uppercase text-zinc-400">Audio</span></div><div className="flex items-end gap-1">{[35, 62, 44, 78, 52, 86, 48, 68].map((height, index) => <span key={index} className="h-8 flex-1 rounded-full bg-[var(--accent)]/70" style={{ height: `${height}%` }} />)}</div></div>;
+    const duration = memory?.metadata?.duration || memory?.duration;
+
+    const formattedDuration = duration
+      ? `${Math.floor(duration / 60)}:${String(Math.round(duration % 60)).padStart(2, "0")}`
+      : null;
+
+    return (
+      <div className={className}>
+        <AudioThumbnail duration={formattedDuration} />
+      </div>
+    );
   }
 
   if (!canRenderImage) {

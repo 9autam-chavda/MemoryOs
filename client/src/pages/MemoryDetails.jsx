@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Copy, Download, Heart, Share2, Tag, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Download, FileQuestion, Heart, Share2, Tag, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -29,9 +29,13 @@ function MemoryDetails() {
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
-
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  
   useEffect(() => {
     document.title = "Memory details · MemoryOS";
+      setConfirmDelete(false);
+      setDeleting(false);
     const load = async () => {
       setLoading(true); setRelatedLoading(true); setVideoReady(false); setVideoFailed(false);
       const [item, related] = await Promise.allSettled([memoryService.getMemoryById(id), memoryService.getRelatedMemories(id)]);
@@ -43,7 +47,40 @@ function MemoryDetails() {
     load();
   }, [id]);
 
-  const handleDelete = async () => { if (!window.confirm("Delete this memory?")) return; try { await memoryService.deleteMemory(id); toast.success("Memory deleted."); navigate("/gallery"); } catch { toast.error("Failed to delete memory."); } };
+  useEffect(() => {
+  if (!confirmDelete) return;
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      setConfirmDelete(false);
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [confirmDelete]);
+
+  const handleDelete = async () => {
+  if (deleting) return;
+
+  setDeleting(true);
+
+  try {
+    await memoryService.deleteMemory(id);
+
+    toast.success("Memory deleted.");
+
+    navigate("/gallery");
+  } catch {
+    toast.error("Failed to delete memory.");
+  } finally {
+    setDeleting(false);
+    setConfirmDelete(false);
+  }
+};
   const toggleFavorite = async () => { setIsFav((value) => !value); try { const res = await memoryService.toggleFavorite(id); toast.success(res.message || (res.data?.isFavorite ? "Added to favorites" : "Removed from favorites")); } catch { setIsFav((value) => !value); toast.error("Failed to update favorite"); } };
   const openShare = () => { setShareInfo(memory.shareToken ? { shareToken: memory.shareToken } : null); setShareModalOpen(true); };
   const copy = async (value, success) => { try { await navigator.clipboard.writeText(value); toast.success(success); } catch { toast.error("Unable to copy."); } };
@@ -60,19 +97,47 @@ function MemoryDetails() {
   const renderPreview = () => {
     if (memory.fileType === "image") return <img src={getImageUrl(memory) || getOriginalUrl(memory)} alt={memory.fileName} className="max-h-[680px] w-full object-contain" />;
     if (memory.fileType === "pdf") return <iframe src={getOriginalUrl(memory)} title={memory.fileName} className="h-[680px] w-full bg-white" />;
-    if (memory.fileType === "audio") return <div className="flex min-h-80 items-center justify-center p-8"><audio controls preload="metadata" className="w-full max-w-xl"><source src={getOriginalUrl(memory)} type={memory.metadata?.mimeType || "audio/mpeg"} /></audio></div>;
+    if (memory.fileType === "audio") return <div className="grid min-h-80 place-items-center p-8"><div className="w-full max-w-xl rounded-xl border border-white/5 bg-[var(--surface)] p-6 shadow-lg"><audio key={getOriginalUrl(memory)} src={getOriginalUrl(memory)} controls preload="metadata" className="w-full" /></div></div>;
     if (memory.fileType === "video") return <div className="relative w-full"><video controls preload="metadata" poster={getVideoThumbnail(memory) || undefined} onLoadedData={() => setVideoReady(true)} onError={() => setVideoFailed(true)} className="max-h-[680px] w-full bg-black object-contain"><source src={getVideoUrl(memory)} type="video/mp4" /></video>{!videoReady && !videoFailed && <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/25 text-sm text-white">Loading video…</div>}{videoFailed && <div className="absolute inset-0 grid place-items-center bg-[var(--surface-muted)] text-sm text-[var(--text-secondary)]">Video preview is unavailable. Use Download to view the original file.</div>}</div>;
-    return <div className="premium-scrollbar max-h-[680px] overflow-y-auto bg-[#f6f3eb] p-6 text-zinc-900"><pre className="whitespace-pre-wrap text-sm leading-7">{memory.extractedText || "No extracted text available."}</pre></div>;
+    if (memory.fileType === "text") return <div className="premium-scrollbar max-h-[680px] overflow-y-auto bg-[#f6f3eb] p-6 text-zinc-900"><pre className="whitespace-pre-wrap text-sm leading-7">{memory.extractedText || "No extracted text available."}</pre></div>;
+    return <div className="flex min-h-80 flex-col items-center justify-center gap-4 p-8 text-center text-[var(--text-secondary)]"><FileQuestion size={34} /><p>This file cannot be previewed in the browser.</p><Button as="a" href={getDownloadUrl(memory)} variant="secondary"><Download size={16} />Download file</Button></div>;
   };
   const tabs = [["overview", "Overview"], ["text", "Extracted text"], ["metadata", "Metadata"]];
 
   return <AppLayout><div className="mx-auto w-full max-w-7xl space-y-5 py-3 sm:py-5">
     <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-3"><Button variant="ghost" className="h-9 min-h-9 w-9 shrink-0 p-0" onClick={() => navigate("/gallery")} aria-label="Back to gallery"><ArrowLeft size={17} /></Button><div className="min-w-0"><h1 className="truncate text-lg font-semibold tracking-tight text-[var(--text-primary)] sm:text-xl">{memory.fileName}</h1><div className="mt-1 flex flex-wrap gap-2"><Badge>{memory.category || "Memory"}</Badge><Badge>{memory.fileType || "File"}</Badge></div></div></div>
-      <div className="flex flex-wrap gap-2"><Button as="a" href={getDownloadUrl(memory)} variant="secondary"><Download size={16} />Download</Button><Button variant="secondary" onClick={openShare} aria-label="Share memory"><Share2 size={16} />Share</Button><Button variant="secondary" onClick={toggleFavorite} aria-label={isFav ? "Remove favorite" : "Add favorite"}><Heart size={16} className={isFav ? "fill-current text-[var(--danger)]" : ""} /><span className="sr-only">Favorite</span></Button><Button variant="danger" onClick={handleDelete} aria-label="Delete memory"><Trash2 size={16} /><span className="sr-only">Delete</span></Button></div>
+      <div className="flex flex-wrap gap-2"><Button as="a" href={getDownloadUrl(memory)} variant="secondary"><Download size={16} />Download</Button><Button variant="secondary" onClick={openShare} aria-label="Share memory"><Share2 size={16} />Share</Button><Button variant="secondary" onClick={toggleFavorite} aria-label={isFav ? "Remove favorite" : "Add favorite"}><Heart size={16} className={isFav ? "fill-current text-[var(--danger)]" : ""} /><span className="sr-only">Favorite</span></Button>{!confirmDelete ? (
+  <Button
+    variant="danger"
+    onClick={() => setConfirmDelete(true)}
+    aria-label="Delete memory"
+  >
+    <Trash2 size={16} />
+    <span className="sr-only">Delete</span>
+  </Button>
+) : (
+  <>
+    <Button
+      variant="danger"
+      onClick={handleDelete}
+      disabled={deleting}
+    >
+      {deleting ? "Deleting..." : "✓ Delete"}
+    </Button>
+
+    <Button
+      variant="ghost"
+      onClick={() => setConfirmDelete(false)}
+      disabled={deleting}
+    >
+      ✕
+    </Button>
+  </>
+)}</div>
     </header>
     <div className="grid gap-5 xl:grid-cols-[minmax(0,2.3fr)_minmax(18rem,1fr)]">
-      <Card className="overflow-hidden p-2 sm:p-3"><div className="flex min-h-80 items-center justify-center overflow-hidden rounded-[calc(var(--radius-lg)-0.35rem)] bg-[var(--surface-muted)]">{renderPreview()}</div></Card>
+     <Card className="overflow-hidden p-2 sm:p-3"><div className="min-h-80 rounded-[calc(var(--radius-lg)-0.35rem)] bg-[var(--surface-muted)] p-8">{renderPreview()}</div></Card>
       <aside className="space-y-4"><Card className="p-5"><div className="flex items-start justify-between gap-3"><h2 className="text-sm font-semibold text-[var(--text-primary)]">AI summary</h2>{memory.summary && <Button variant="ghost" className="h-8 min-h-8 w-8 p-0" onClick={() => copy(memory.summary, "Summary copied")} aria-label="Copy summary"><Copy size={15} /></Button>}</div><p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{memory.summary || "No summary is available for this memory."}</p></Card>
       <Card className="p-5"><h2 className="text-sm font-semibold text-[var(--text-primary)]">Quick facts</h2><dl className="mt-3 space-y-2">{facts.slice(0, 4).map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 text-sm"><dt className="text-[var(--text-tertiary)]">{label}</dt><dd className="truncate text-right text-[var(--text-secondary)]">{value}</dd></div>)}</dl></Card>
       <Card className="p-5"><h2 className="text-sm font-semibold text-[var(--text-primary)]">Related memories</h2><RelatedMemoryList memories={relatedMemories} loading={relatedLoading} /></Card></aside>

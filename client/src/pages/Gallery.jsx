@@ -9,6 +9,7 @@ import UploadModal from "../components/upload/UploadModal";
 import memoryService from "../services/memory.service";
 import {subscribeMemoryUpdated} from "../utils/events";
 
+
 const filters = [
   { value: "all", label: "All" },
   { value: "favorites", label: "Favorites" },
@@ -80,10 +81,19 @@ function Gallery() {
     saveRecentSearch(search);
   };
 
-  const handleUploadSuccess = () => {
+  const handleUploadSuccess = async ({ processing } = {}) => {
+    if (!processing) {
+        console.log("Upload Completed");
+    } else {
+        console.log("Memory Created");
+    }
+
     setIsUploadOpen(false);
-    loadMemories(search);
-  };
+
+    await loadMemories(search);
+
+    console.log("Reload Finished");
+};
 
   return (
     <AppLayout>

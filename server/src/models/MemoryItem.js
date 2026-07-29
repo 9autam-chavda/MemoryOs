@@ -35,6 +35,12 @@ const memoryItemSchema = new mongoose.Schema(
         enum: ["image", "pdf", "audio", "video", "document"],
         required: true,
       },
+      // Provider implementation detail. Do not use this to determine UI or
+      // content behavior; `fileType` is the application-level source of truth.
+      cloudinaryResourceType: {
+        type: String,
+        enum: ["image", "video", "raw"],
+      },
       format: String,
       bytes: Number,
       width: Number,

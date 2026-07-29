@@ -60,7 +60,12 @@ function UploadProvider({ children }) {
               controller.signal
             );
 
-          const job = response.data;
+          // The status endpoint has existed in both wrapped
+          // ({ success, data: job }) and direct ({ status: ... }) forms.
+          // Normalize at the polling boundary so a completed direct response
+          // reaches the completion branch instead of throwing and retrying.
+          const job = response?.data?.status ? response.data : response;
+
 
           if (job.status === "completed") {
             updateUpload(upload.id, {
@@ -170,7 +175,7 @@ function UploadProvider({ children }) {
         }
 
         const jobId =
-          response.data?.jobId;
+          response?.data?.jobId || response?.jobId;
 
         if (!jobId) {
           throw new Error(
@@ -230,6 +235,7 @@ function UploadProvider({ children }) {
   );
 
   const addUpload = useCallback(
+    
     (file, onSuccess) => {
       const upload = {
         id: crypto.randomUUID(),
@@ -301,6 +307,11 @@ function UploadProvider({ children }) {
     <UploadContext.Provider
       value={{
         uploads,
+        hasActiveUploads: uploads.some(
+          (u) =>
+            u.status === "uploading" ||
+            u.status === "processing"
+        ),
         addUpload,
         retryUpload,
         removeUpload,

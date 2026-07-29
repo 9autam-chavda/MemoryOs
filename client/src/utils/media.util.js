@@ -1,23 +1,25 @@
-const TYPE_ALIASES = {
-  text: "document",
-  other: "document",
-};
+const TYPE_ALIASES = { text: "document", other: "document" };
 
-export const getMediaType = (media) => TYPE_ALIASES[media?.resourceType || media?.fileType] || media?.resourceType || media?.fileType || "document";
+// fileType is the application's source of truth. In particular, Cloudinary
+// stores audio as a video resource, which must never make it render as video.
+export const getMediaType = (memory) => TYPE_ALIASES[memory?.fileType] || memory?.fileType || "document";
 
-export const getImageUrl = (media) => getMediaType(media) === "image" ? media?.previewUrl || media?.thumbnail || null : null;
-export const getVideoUrl = (media) => getMediaType(media) === "video" ? media?.playbackUrl || media?.fileUrl || null : null;
-export const getVideoThumbnail = (media) => getMediaType(media) === "video" ? media?.previewUrl || media?.thumbnail || null : null;
-export const getPdfThumbnail = (media) => getMediaType(media) === "pdf" ? media?.previewUrl || media?.thumbnail || null : null;
-export const getDownloadUrl = (media) => media?.downloadUrl || media?.fileUrl || null;
-export const getOriginalUrl = (media) => media?.fileUrl || null;
+const getMedia = (memory) => memory?.media || {};
 
-export const getThumbnailUrl = (media) => {
-  const type = getMediaType(media);
-  if (type === "image") return getImageUrl(media);
-  if (type === "video") return getVideoThumbnail(media);
-  if (type === "pdf") return getPdfThumbnail(media);
+// During a rolling deploy, older API instances may still return `fileUrl`.
+// This fallback is URL-shape compatibility only; fileType remains the sole
+// rendering discriminator.
+export const getOriginalUrl = (memory) => getMedia(memory).originalUrl || memory?.fileUrl || null;
+export const getDownloadUrl = (memory) => getMedia(memory).downloadUrl || getOriginalUrl(memory);
+export const getImageUrl = (memory) => getMediaType(memory) === "image" ? getOriginalUrl(memory) : null;
+export const getVideoUrl = (memory) => getMediaType(memory) === "video" ? getMedia(memory).streamUrl || getOriginalUrl(memory) : null;
+export const getVideoThumbnail = (memory) => getMediaType(memory) === "video" ? getMedia(memory).thumbnailUrl || null : null;
+export const getPdfThumbnail = (memory) => getMediaType(memory) === "pdf" ? getMedia(memory).thumbnailUrl || null : null;
+export const getThumbnailUrl = (memory) => {
+  const type = getMediaType(memory);
+  if (type === "image") return getImageUrl(memory);
+  if (type === "video") return getVideoThumbnail(memory);
+  if (type === "pdf") return getPdfThumbnail(memory);
   return null;
 };
-
-export const getFileIcon = (media) => getMediaType(media);
+export const getFileIcon = getMediaType;

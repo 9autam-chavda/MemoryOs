@@ -30,14 +30,36 @@ const uploadMemory =
       });
 
       setImmediate(async () => {
-        const onStage = (stage, message) => updateUploadJob(job._id, {
-          status: "processing",
-          stage,
-          message,
-        });
+        const onStage = async (stage, message) => {
+          const updates = {
+              stage,
+              message,
+          };
+
+          if (stage === "completed") {
+              updates.status = "completed";
+          } else if (stage === "failed") {
+              updates.status = "failed";
+          } else {
+              updates.status = "processing";
+          }
+
+          await updateUploadJob(job._id, updates);
+      };
 
         try {
-          const memory = await memoryService.uploadMemory(req.file, req.user.id, onStage);
+          const onMemoryCreated = async (memory) => {
+              await updateUploadJob(job._id, {
+                  memoryId: memory._id,
+              });
+          };
+
+          const memory = await memoryService.uploadMemory(
+              req.file,
+              req.user.id,
+              onStage,
+              onMemoryCreated
+          );
           await updateUploadJob(job._id, { status: "completed", stage: "completed", message: "Completed", memoryId: memory._id });
         } catch (error) {
           console.error("Memory upload job failed", error.message);
@@ -68,6 +90,7 @@ const getUploadStatus = async (req, res) => {
         status: job.status,
         stage: job.stage,
         message: job.message,
+        memoryId: job.memoryId,
         error: job.error,
       },
     });
