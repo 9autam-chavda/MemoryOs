@@ -5,6 +5,7 @@ from routes import (
     analyze_router,
     assistant_router,
     embedding_router,
+    summary_router,
     transcribe_router,
 )
 
@@ -18,11 +19,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def home():
     return {"status": "MemoryOS AI Service Running"}
+
 
 app.include_router(analyze_router)
 app.include_router(embedding_router)
 app.include_router(transcribe_router)
 app.include_router(assistant_router)
+app.include_router(summary_router)

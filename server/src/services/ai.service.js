@@ -33,16 +33,15 @@ const analyzeText = async (text) => {
 
   let data;
 
-try {
-  const response = await client.post("/analyze", {
-    text,
-  });
+  try {
+    const response = await client.post("/analyze", {
+      text,
+    });
 
-  data = response.data;
-
-} catch (error) {
-  handleAIError(error, "analyze the document");
-}
+    data = response.data;
+  } catch (error) {
+    handleAIError(error, "analyze the document");
+  }
 
   debug("RESPONSE", {
     endpoint: "/analyze",
@@ -73,16 +72,15 @@ const generateEmbedding = async (text) => {
 
   let data;
 
-try {
-  const response = await client.post("/embedding", {
-    text,
-  });
+  try {
+    const response = await client.post("/embedding", {
+      text,
+    });
 
-  data = response.data;
-
-} catch (error) {
-  handleAIError(error, "generate embeddings");
-}
+    data = response.data;
+  } catch (error) {
+    handleAIError(error, "generate embeddings");
+  }
 
   debug("RESPONSE", {
     endpoint: "/embedding",
@@ -92,7 +90,41 @@ try {
   return data.embedding;
 };
 
+// ===========================================
+// Generate Summary
+// ===========================================
+
+const generateSummary = async (text) => {
+  if (!text || !text.trim()) {
+    return "";
+  }
+
+  debug("REQUEST", {
+    endpoint: "/summary",
+    textLength: text.length,
+  });
+
+  let data;
+
+  try {
+    const response = await client.post("/summary", {
+      text,
+    });
+
+    data = response.data;
+  } catch (error) {
+    handleAIError(error, "generate summary");
+  }
+
+  debug("RESPONSE", {
+    endpoint: "/summary",
+  });
+
+  return data.summary;
+};
+
 module.exports = {
   analyzeText,
   generateEmbedding,
+  generateSummary,
 };

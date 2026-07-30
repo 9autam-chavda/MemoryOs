@@ -200,7 +200,6 @@ const searchMemories = async (userId, query, fileType) => {
 };
 
 const getMemoryById = async (memoryId, userId) => {
-
   const memory = await MemoryItem.findOne({
     _id: memoryId,
     userId,
@@ -210,12 +209,40 @@ const getMemoryById = async (memoryId, userId) => {
     throw new Error("Memory not found");
   }
 
+  // ==========================================
+  // Lazy Summary Generation
+  // ==========================================
+
+  if (!memory.summary?.trim()) {
+    try {
+      if (memory.wordCount <= 30) {
+        memory.summary = memory.extractedText;
+      } else {
+        memory.summary =
+          await aiService.generateSummary(
+            memory.extractedText
+          );
+      }
+
+      await memory.save();
+    } catch (error) {
+      console.error(
+        "Summary generation failed:",
+        error.message
+      );
+
+      // Don't fail the request if summary generation fails.
+      memory.summary = "";
+    }
+  }
+
   return {
     id: memory._id,
 
     fileName: memory.fileName,
 
     fileType: memory.fileType,
+
     media: toMediaResponse(memory),
 
     extractedText: memory.extractedText,
@@ -231,20 +258,31 @@ const getMemoryById = async (memoryId, userId) => {
     embedding: memory.embedding,
 
     isFavorite: !!memory.isFavorite,
+
     shareEnabled: !!memory.shareEnabled,
+
     shareToken: memory.shareToken,
 
     metadata: {
-      ...(memory.metadata?.toObject?.() || memory.metadata || {}),
+      ...(memory.metadata?.toObject?.() ||
+        memory.metadata ||
+        {}),
+
       size: memory.media?.bytes,
+
       mimeType: memory.media?.mimeType,
+
       width: memory.media?.width,
+
       height: memory.media?.height,
+
       duration: memory.media?.duration,
+
       format: memory.media?.format,
     },
 
     createdAt: memory.createdAt,
+
     updatedAt: memory.updatedAt,
   };
 };

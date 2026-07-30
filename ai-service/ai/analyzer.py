@@ -1,12 +1,9 @@
-from ai.summarizer import summarize
 from ai.classifier import classify
 from ai.tagger import extract_tags
 from ai.embedding import generate_embedding
 
 
 def analyze(text: str):
-
-    summary = summarize(text)
 
     category = classify(text)
 
@@ -15,7 +12,7 @@ def analyze(text: str):
     embedding = generate_embedding(text)
 
     return {
-        "summary": summary,
+        "summary": "",
         "category": category,
         "tags": tags,
         "embedding": embedding,
