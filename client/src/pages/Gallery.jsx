@@ -81,19 +81,7 @@ function Gallery() {
     saveRecentSearch(search);
   };
 
-  const handleUploadSuccess = async ({ processing } = {}) => {
-    if (!processing) {
-        console.log("Upload Completed");
-    } else {
-        console.log("Memory Created");
-    }
-
-    setIsUploadOpen(false);
-
-    await loadMemories(search);
-
-    console.log("Reload Finished");
-};
+  
 
   return (
     <AppLayout>

@@ -116,6 +116,30 @@ select {
   outline-offset: 2px;
 }
 
+textarea:focus,
+textarea:focus-visible {
+  outline: none;
+}
+
+@keyframes ai-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-4px) scale(1.03);
+  }
+}
+
+.animate-ai-float {
+  animation: ai-float 3.5s ease-in-out infinite;
+}
+
+.animate-ai-core {
+  animation: ai-core 3s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
