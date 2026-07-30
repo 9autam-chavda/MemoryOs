@@ -1,4 +1,5 @@
 const axios = require("axios");
+const handleAIError = require("../utils/aiErrorHandler");
 
 const AI_BASE_URL = (
   process.env.AI_SERVICE_URL ||
@@ -30,9 +31,18 @@ const analyzeText = async (text) => {
     textLength: text.length,
   });
 
-  const { data } = await client.post("/analyze", {
+  let data;
+
+try {
+  const response = await client.post("/analyze", {
     text,
   });
+
+  data = response.data;
+
+} catch (error) {
+  handleAIError(error, "analyze the document");
+}
 
   debug("RESPONSE", {
     endpoint: "/analyze",
@@ -61,9 +71,18 @@ const generateEmbedding = async (text) => {
     textLength: text.length,
   });
 
-  const { data } = await client.post("/embedding", {
+  let data;
+
+try {
+  const response = await client.post("/embedding", {
     text,
   });
+
+  data = response.data;
+
+} catch (error) {
+  handleAIError(error, "generate embeddings");
+}
 
   debug("RESPONSE", {
     endpoint: "/embedding",

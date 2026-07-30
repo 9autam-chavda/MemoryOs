@@ -10,7 +10,6 @@ import memorySessionService from "../../services/memorySession.service";
 function AssistantHistory() {
   const navigate = useNavigate(); const [sessions, setSessions] = useState([]); const [search, setSearch] = useState(""); const [editingSessionId, setEditingSessionId] = useState(null);
   async function loadSessions() { try { setSessions((await memorySessionService.getSessions()).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))); } catch (error) { console.error(error); } }
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadSessions(); }, []); // one-time history request
   const filtered = useMemo(() => sessions.filter((session) => session.title.toLowerCase().includes(search.toLowerCase())), [sessions, search]);
   const saveRename = async (session, title) => { const previous = session.title; setSessions((current) => current.map((item) => item._id === session._id ? { ...item, title } : item)); setEditingSessionId(null); try { await memorySessionService.renameSession(session._id, title); } catch { setSessions((current) => current.map((item) => item._id === session._id ? { ...item, title: previous } : item)); toast.error("Unable to rename conversation"); } };

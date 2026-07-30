@@ -22,7 +22,6 @@ import useUpload from "../../hooks/useUpload";
 function UploadModal({
   isOpen,
   onClose,
-  onUploadSuccess,
 }) {
   const [file, setFile] = useState(null);
 
@@ -99,7 +98,6 @@ const getFileType = (file) => {
 
     addUpload(file, () => {
       toast.success("Memory uploaded.");
-      onUploadSuccess();
     });
 
     setFile(null);

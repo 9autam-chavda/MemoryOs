@@ -64,13 +64,37 @@ const processMemory = async (
     );
 
     // ==========================================
-    // AI Analysis
-    // ==========================================
+// Validate Extracted Text
+// ==========================================
 
-    const ai =
-      await aiService.analyzeText(
-        extractedData.extractedText
-      );
+// ==========================================
+// Validate Extracted Text
+// ==========================================
+
+if (!extractedData.extractedText?.trim()) {
+  extractedData.extractedText = `
+Scanned PDF detected.
+
+This document appears to contain scanned images instead of selectable text.
+
+OCR support is not available in the current version of MemoryOS.
+
+The file has been uploaded successfully and can be reprocessed once OCR support is implemented.
+  `.trim();
+
+  extractedData.wordCount =
+    extractedData.extractedText
+      .split(/\s+/)
+      .length;
+}
+
+// ==========================================
+// AI Analysis
+// ==========================================
+
+const ai = await aiService.analyzeText(
+  extractedData.extractedText
+);
 
     memory.summary = ai.summary;
     memory.category = ai.category;

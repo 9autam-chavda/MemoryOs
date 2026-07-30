@@ -34,8 +34,6 @@ function MemoryDetails() {
   
   useEffect(() => {
     document.title = "Memory details · MemoryOS";
-      setConfirmDelete(false);
-      setDeleting(false);
     const load = async () => {
       setLoading(true); setRelatedLoading(true); setVideoReady(false); setVideoFailed(false);
       const [item, related] = await Promise.allSettled([memoryService.getMemoryById(id), memoryService.getRelatedMemories(id)]);

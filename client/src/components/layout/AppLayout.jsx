@@ -74,11 +74,13 @@ function AppLayout({
 
     drawerRef.current?.querySelector("a, button")?.focus();
 
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-      menuButtonRef.current?.focus();
-    };
+    const menuButton = menuButtonRef.current;
+
+return () => {
+    document.body.style.overflow = previousOverflow;
+    document.removeEventListener("keydown", handleKeyDown);
+    menuButton?.focus();
+  };
   }, [isDesktop, isSidebarOpen]);
 
   return (

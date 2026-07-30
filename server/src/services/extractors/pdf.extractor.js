@@ -1,7 +1,6 @@
 const pdf = require("pdf-parse");
 
 const extract = async (file) => {
-
   const data = await pdf(file.buffer);
 
   const extractedText = data.text.trim();
@@ -11,8 +10,8 @@ const extract = async (file) => {
     wordCount: extractedText
       ? extractedText.split(/\s+/).length
       : 0,
+    pageCount: data.numpages,
   };
-
 };
 
 module.exports = {

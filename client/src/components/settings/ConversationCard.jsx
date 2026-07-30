@@ -4,7 +4,7 @@ import HistoryActionBar from "./HistoryActionBar";
 
 function ConversationCard({ session, isEditing, onOpen, onStartRename, onCancelRename, onSaveRename, onDelete }) {
   const [draftTitle, setDraftTitle] = useState(session.title); const inputRef = useRef(null);
-  useEffect(() => { if (isEditing) { // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (isEditing) { 
     setDraftTitle(session.title); requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); }); } }, [isEditing, session.title]);
   const commit = () => { const title = draftTitle.trim(); if (!title || title === session.title) { onCancelRename(); return; } onSaveRename(session, title); };
   const open = () => { if (!isEditing) onOpen(session._id); };

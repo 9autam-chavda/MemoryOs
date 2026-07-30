@@ -15,6 +15,8 @@ const assistantRoutes = require("./routes/assistant.routes");
 
 const memorySessionRoutes = require("./routes/memorySession.routes");
 
+const errorHandler = require("./middleware/error.middleware");
+
 const app = express();
 
 const allowedOrigins = [
@@ -51,6 +53,8 @@ app.use(
   "/api/user",
   userRoutes
 );
+
+app.use(errorHandler);
 
 app.use(
   "/api/memory",

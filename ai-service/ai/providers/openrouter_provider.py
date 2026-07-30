@@ -56,6 +56,31 @@ class OpenRouterProvider:
             return answer.strip()
 
         except Exception as error:
+            message = str(error).lower()
+
+            # Quota / Credits exhausted / Rate limit
+            if (
+                "429" in message
+                or "quota" in message
+                or "resource_exhausted" in message
+                or "rate limit" in message
+                or "credits" in message
+            ):
+                raise RuntimeError(
+                    "The AI assistant is temporarily unavailable because the request limit has been reached. Please try again later."
+                ) from error
+
+            # Context window / Token limit
+            if (
+                "context" in message
+                or "token" in message
+                or "maximum context" in message
+                or "context length" in message
+            ):
+                raise RuntimeError(
+                    "The request is too large for the AI assistant. Please ask a more specific question."
+                ) from error
+
             raise RuntimeError(
                 f"OpenRouter generation failed: {error}"
             ) from error

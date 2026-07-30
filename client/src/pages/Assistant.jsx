@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -25,7 +25,7 @@ function Assistant() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [sessions, setSessions] = useState([]);
+  const [, setSessions] = useState([]);
   const [currentSession, setCurrentSession] =
     useState(null);
   const [messages, setMessages] = useState([]);
@@ -54,7 +54,7 @@ function Assistant() {
     }
   }
 
-  async function initialize() {
+  const initialize = useCallback(async () => {
     try {
       const fetched =
         await memorySessionService.getSessions();
@@ -104,12 +104,12 @@ function Assistant() {
     } finally {
       setInitializing(false);
     }
-  }
+  }, [searchParams]);
 
   useEffect(() => {
     document.title = "Assistant · MemoryOS";
     initialize();
-  }, []);
+}, [initialize]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({

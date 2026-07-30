@@ -32,7 +32,7 @@ const memoryItemSchema = new mongoose.Schema(
       publicId: { type: String, required: true },
       resourceType: {
         type: String,
-        enum: ["image", "pdf", "audio", "video", "document"],
+        enum: ["image", "pdf", "audio", "video", "document","text"],
         required: true,
       },
       // Provider implementation detail. Do not use this to determine UI or

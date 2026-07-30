@@ -95,7 +95,7 @@ function Gallery() {
 
         <MemoryGrid memories={memories} loading={loading || searchLoading} search={search} onUpload={() => setIsUploadOpen(true)} />
       </div>
-      <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} onUploadSuccess={handleUploadSuccess} />
+      <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </AppLayout>
   );
 }

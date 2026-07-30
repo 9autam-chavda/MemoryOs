@@ -9,6 +9,14 @@ const FOLDERS = {
   text: "memoryos/text",
   document: "memoryos/documents",
 };
+const UPLOAD_LIMITS = {
+  image: 10 * 1024 * 1024,        // 10 MB (Cloudinary Free)
+  pdf: 100 * 1024 * 1024,         // 100 MB
+  video: 100 * 1024 * 1024,       // 100 MB
+  audio: 100 * 1024 * 1024,       // 100 MB
+  text: 5 * 1024 * 1024,          // 5 MB
+  document: 50 * 1024 * 1024,     // 50 MB (Word, Excel, PPT)
+};
 
 const createMediaError = (message, status = 500) => Object.assign(new Error(message), { status });
 
@@ -105,6 +113,17 @@ const upload = async (file, fileType = getFileType(file?.mimetype)) => {
   if (!file?.buffer || !file.originalname) throw createMediaError("A file is required for upload", 400);
   assertCloudinaryConfigured();
 
+ const maxSize = UPLOAD_LIMITS[fileType];
+
+if (maxSize && file.size > maxSize) {
+  throw createMediaError(
+    `Maximum ${fileType.toUpperCase()} upload size is ${
+      maxSize / (1024 * 1024)
+    } MB.`,
+    400
+  );
+}
+
   let result;
   try {
     result = await new Promise((resolve, reject) => {
@@ -119,8 +138,83 @@ const upload = async (file, fileType = getFileType(file?.mimetype)) => {
       stream.end(file.buffer);
     });
   } catch (error) {
-    throw createMediaError(`Cloudinary upload failed: ${error.message}`, 502);
+
+  console.error("Cloudinary Upload Error:", error);
+
+  const message = error.message?.toLowerCase() || "";
+
+  // File size
+  if (message.includes("file size too large")) {
+    throw createMediaError(
+      "The selected file exceeds the maximum upload size.",
+      400
+    );
   }
+
+  // Timeout
+  if (message.includes("timeout")) {
+    throw createMediaError(
+      "Upload timed out. Please try again.",
+      408
+    );
+  }
+
+  // Invalid or corrupted file
+  if (
+    message.includes("invalid image file") ||
+    message.includes("invalid file") ||
+    message.includes("corrupt")
+  ) {
+    throw createMediaError(
+      "The selected file is invalid or corrupted.",
+      400
+    );
+  }
+
+  // Authentication / Configuration
+  if (
+    message.includes("api key") ||
+    message.includes("api secret") ||
+    message.includes("authentication") ||
+    message.includes("invalid signature")
+  ) {
+    throw createMediaError(
+      "Cloud storage configuration error.",
+      500
+    );
+  }
+
+  // Rate limit
+  if (
+    message.includes("rate limit") ||
+    message.includes("too many requests")
+  ) {
+    throw createMediaError(
+      "Cloud upload limit reached. Please try again later.",
+      429
+    );
+  }
+
+  // Network problems
+  if (
+    message.includes("socket") ||
+    message.includes("network") ||
+    message.includes("econnreset") ||
+    message.includes("enotfound") ||
+    message.includes("etimedout")
+  ) {
+    throw createMediaError(
+      "Unable to connect to cloud storage. Please try again.",
+      503
+    );
+  }
+
+  // Unknown Cloudinary error
+  throw createMediaError(
+    "Unable to upload file. Please try again.",
+    500
+  );
+}
 
   
 
