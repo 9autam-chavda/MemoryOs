@@ -37,18 +37,6 @@ Transform screenshots, documents, videos, audio recordings, and notes into an in
 
 </p>
 
-<p align="center">
-
-<img src="https://img.shields.io/github/license/gautam-chavda/MemoryOs?style=flat-square"/>
-
-<img src="https://img.shields.io/github/last-commit/gautam-chavda/MemoryOs?style=flat-square"/>
-
-<img src="https://img.shields.io/github/repo-size/gautam-chavda/MemoryOs?style=flat-square"/>
-
-<img src="https://img.shields.io/github/languages/top/gautam-chavda/MemoryOs?style=flat-square"/>
-
-</p>
-
 </div>
 
 ---
