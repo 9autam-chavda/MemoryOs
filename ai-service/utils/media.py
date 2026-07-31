@@ -1,13 +1,19 @@
 import os
+import shutil
 import subprocess
 import tempfile
 
-# Local Windows path
-# On Render/Linux, set FFMPEG_PATH=ffmpeg
-FFMPEG_PATH = os.getenv(
-    "FFMPEG_PATH",
-    r"C:\ffmpeg\bin\ffmpeg.exe"
-)
+# If FFMPEG_PATH is set, use it.
+# Otherwise:
+# - Windows -> C:\ffmpeg\bin\ffmpeg.exe
+# - Linux/Docker -> ffmpeg (from PATH)
+
+if os.name == "nt":
+    DEFAULT_FFMPEG = r"C:\ffmpeg\bin\ffmpeg.exe"
+else:
+    DEFAULT_FFMPEG = "ffmpeg"
+
+FFMPEG_PATH = os.getenv("FFMPEG_PATH", DEFAULT_FFMPEG)
 
 VIDEO_EXTENSIONS = {
     ".mp4",
@@ -27,13 +33,19 @@ def is_video(path: str) -> bool:
 
 def extract_audio(video_path: str) -> str:
     """
-    Extract and compress audio from a video.
-    Returns temporary MP3 path.
+    Extract audio from a video using FFmpeg.
+    Returns path to temporary MP3.
     """
+
+    # Make sure FFmpeg exists
+    if shutil.which(FFMPEG_PATH) is None and not os.path.isfile(FFMPEG_PATH):
+        raise RuntimeError(
+            f"FFmpeg not found: {FFMPEG_PATH}"
+        )
 
     output = tempfile.NamedTemporaryFile(
         suffix=".mp3",
-        delete=False
+        delete=False,
     ).name
 
     command = [
@@ -59,8 +71,6 @@ def extract_audio(video_path: str) -> str:
     )
 
     if result.returncode != 0:
-        raise RuntimeError(
-            f"FFmpeg failed:\n{result.stderr}"
-        )
+        raise RuntimeError(result.stderr)
 
     return output
