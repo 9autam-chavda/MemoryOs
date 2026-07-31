@@ -1,17 +1,13 @@
 const axios = require("axios");
 
-const AI_SERVICE_URL =
-  process.env.AI_BASE_URL || "http://127.0.0.1:8000";
+const AI_SERVICE_URL = (
+  process.env.AI_SERVICE_URL ||
+  "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 
 const REQUEST_TIMEOUT = Number(
   process.env.LLM_TIMEOUT || 60000
 );
-
-const debug = (...details) => {
-  if (process.env.RAG_DEBUG === "true") {
-    console.info("[Response Generator]", ...details);
-  }
-};
 
 class ResponseGenerator {
   constructor() {
@@ -26,35 +22,40 @@ class ResponseGenerator {
       throw new Error("Prompt is required.");
     }
 
-    debug("Sending prompt to AI service...");
+    console.log("\n==============================");
+    console.log("ResponseGenerator");
+    console.log("==============================");
+    console.log("AI URL:", AI_SERVICE_URL);
+    console.log("Endpoint:", "/assistant");
+    console.log("Prompt Length:", prompt.length);
 
-        try {
-      const { data } = await this.client.post(
+    try {
+      const response = await this.client.post(
         "/assistant",
-        {
-          prompt,
-        }
+        { prompt }
       );
 
-      if (!data) {
-        throw new Error("Empty response.");
+      console.log("Status:", response.status);
+      console.log("Data:", response.data);
+
+      if (!response.data.answer) {
+        throw new Error("No answer returned.");
       }
 
-      if (!data.answer) {
-        throw new Error(
-          "AI service returned no answer."
-        );
-      }
+      return response.data.answer;
 
-      debug("Response received.");
-
-      return data.answer;
     } catch (error) {
-      debug(error.message);
 
-      throw new Error(
-        "Unable to generate AI response."
-      );
+      console.log("\n========= AXIOS ERROR =========");
+
+      console.log("Code:", error.code);
+      console.log("Message:", error.message);
+      console.log("Status:", error.response?.status);
+      console.log("Response:", error.response?.data);
+
+      console.log("===============================\n");
+
+      throw error;
     }
   }
 }
