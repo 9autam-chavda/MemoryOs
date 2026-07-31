@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-faster-whisper
 python-dotenv
 requests
 openai==2.47.0
+groq

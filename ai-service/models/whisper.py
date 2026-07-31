@@ -1,19 +1,39 @@
-from faster_whisper import WhisperModel
+import os
 
-model = WhisperModel(
-    "base",
-    device="cpu",
-    compute_type="int8"
-)
+from groq import Groq
+
+from utils.media import extract_audio, is_video
 
 
-def transcribe(path):
+def transcribe(path: str) -> str:
+    api_key = os.getenv("GROQ_API_KEY")
 
-    segments, info = model.transcribe(path)
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY is missing.")
 
-    text = ""
+    client = Groq(
+        api_key=api_key,
+        timeout=120,
+        max_retries=2,
+    )
 
-    for segment in segments:
-        text += segment.text + " "
+    audio_path = path
+    generated_audio = False
 
-    return text.strip()
+    try:
+        if is_video(path):
+            audio_path = extract_audio(path)
+            generated_audio = True
+
+        with open(audio_path, "rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                model="whisper-large-v3-turbo",
+                file=(os.path.basename(audio_path), audio_file.read()),
+                response_format="verbose_json",
+            )
+
+        return response.text.strip()
+
+    finally:
+        if generated_audio and os.path.exists(audio_path):
+            os.remove(audio_path)

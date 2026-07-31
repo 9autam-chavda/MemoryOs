@@ -13,17 +13,15 @@ app = FastAPI(title="MemoryOS AI Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict this later if needed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
 @app.get("/")
 def home():
     return {"status": "MemoryOS AI Service Running"}
-
 
 app.include_router(analyze_router)
 app.include_router(embedding_router)
