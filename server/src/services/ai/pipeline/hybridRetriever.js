@@ -75,9 +75,13 @@ class HybridRetriever {
       query.normalizedQuery
     );
 
+    const EXPECTED = Number(
+      process.env.EMBEDDING_DIMENSION || 1024
+    );
+
     if (
       !Array.isArray(queryEmbedding) ||
-      queryEmbedding.length !== 384
+      queryEmbedding.length !== EXPECTED
     ) {
       throw new Error("Invalid query embedding.");
     }
@@ -99,7 +103,7 @@ class HybridRetriever {
       // Skip invalid embeddings
       if (
         !Array.isArray(memory.embedding) ||
-        memory.embedding.length !== 384
+        memory.embedding.length !== EXPECTED
       ) {
         continue;
       }

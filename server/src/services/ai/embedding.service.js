@@ -42,10 +42,12 @@ class EmbeddingService {
         throw new Error("Embedding response is not an array.");
       }
 
-      if (embedding.length !== 384) {
-        throw new Error(
-          `Invalid embedding dimensions. Expected 384 but received ${embedding.length}.`
-        );
+      const EXPECTED = 1024;
+
+      if (embedding.length !== EXPECTED) {
+          throw new Error(
+              `Expected ${EXPECTED} dimensions but received ${embedding.length}`
+          );
       }
 
       if (embedding.some((value) => typeof value !== "number")) {

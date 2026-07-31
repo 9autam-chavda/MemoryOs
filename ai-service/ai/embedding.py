@@ -1,4 +1,6 @@
-from ai.model_manager import model_manager
+from ai.providers.embedding.jina_provider import (
+    generate_embedding as jina_generate_embedding,
+)
 
 
 def generate_embedding(text: str):
@@ -8,9 +10,4 @@ def generate_embedding(text: str):
     if not text:
         return []
 
-    embedding = model_manager.embedding_model.encode(
-        text,
-        convert_to_numpy=True
-    )
-
-    return embedding.tolist()
+    return jina_generate_embedding(text)

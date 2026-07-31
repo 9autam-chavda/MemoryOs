@@ -2,8 +2,5 @@ fastapi
 uvicorn
 python-multipart
 faster-whisper
-
-keybert
-sentence-transformers
-
 python-dotenv
+requests
