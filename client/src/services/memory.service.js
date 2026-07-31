@@ -29,23 +29,26 @@ const deleteMemory = async (id) => {
 };
 
 const uploadMemory = async (formData, onProgress, signal) => {
-  const response = await axios({
-    method: "post",
-    url: "http://localhost:5000/api/memory/upload",
-    data: formData,
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-    },
-    signal,
+  const response = await api.post(
+    "/memory/upload",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      signal,
+      onUploadProgress: (event) => {
+        if (!event.total) return;
 
-    onUploadProgress: (event) => {
-      if (!event.total) return;
+        const progress = Math.min(
+          95,
+          Math.round((event.loaded * 95) / event.total)
+        );
 
-      const progress = Math.min(95, Math.round((event.loaded * 95) / event.total));
-
-      onProgress?.(progress);
-    },
-  });
+        onProgress?.(progress);
+      },
+    }
+  );
 
   return response.data;
 };
