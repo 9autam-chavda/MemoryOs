@@ -1,21 +1,34 @@
-const transporter = require("../config/mail.config");
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 class EmailService {
-  async sendMail({
-    to,
-    subject,
-    html,
-  }) {
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to,
-      subject,
-      html,
-    });
+  async sendMail({ to, subject, html }) {
+    try {
+      console.log("======= SEND EMAIL =======");
+      console.log("TO:", to);
+
+      const response = await resend.emails.send({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject,
+        html,
+      });
+
+      console.log("EMAIL SENT");
+      console.log(response);
+
+      return response;
+    } catch (error) {
+      console.error("EMAIL FAILED");
+      console.error(error);
+
+      throw new Error("Unable to send email.");
+    }
   }
 
   async sendVerificationOTP(email, otp) {
-    await this.sendMail({
+    return this.sendMail({
       to: email,
       subject: "Verify your MemoryOS account",
       html: `
@@ -33,7 +46,7 @@ class EmailService {
   }
 
   async sendResetPasswordOTP(email, otp) {
-    await this.sendMail({
+    return this.sendMail({
       to: email,
       subject: "Reset your MemoryOS password",
       html: `
