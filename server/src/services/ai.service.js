@@ -1,5 +1,6 @@
 const axios = require("axios");
 const handleAIError = require("../utils/aiErrorHandler");
+const FormData = require("form-data");
 
 const AI_BASE_URL = (
   process.env.AI_SERVICE_URL ||
@@ -123,8 +124,49 @@ const generateSummary = async (text) => {
   return data.summary;
 };
 
+// ===========================================
+// Transcribe File
+// ===========================================
+
+const transcribeFile = async (file) => {
+  const formData = new FormData();
+
+  formData.append("file", file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+
+  debug("REQUEST", {
+    endpoint: "/transcribe",
+    filename: file.originalname,
+    mimeType: file.mimetype,
+    size: file.size,
+  });
+
+  try {
+    const response = await client.post(
+      "/transcribe",
+      formData,
+      {
+        headers: formData.getHeaders(),
+        maxBodyLength: Infinity,
+      }
+    );
+
+    debug("RESPONSE", {
+      endpoint: "/transcribe",
+      textLength: response.data.text?.length || 0,
+    });
+
+    return response.data.text || "";
+  } catch (error) {
+    handleAIError(error, "transcribe the file");
+  }
+};
+
 module.exports = {
   analyzeText,
   generateEmbedding,
   generateSummary,
+  transcribeFile,
 };
