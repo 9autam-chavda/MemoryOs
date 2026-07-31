@@ -1,6 +1,5 @@
 <div align="center">
 
-<img src="./docs/assets/logo.svg" alt="MemoryOS Logo" width="140"/>
 
 # MemoryOS
 
