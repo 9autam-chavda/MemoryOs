@@ -165,16 +165,17 @@ Open `http://localhost:5173`.
 
 ## 🌐 Deployment
 
-The current deployment uses:
+MemoryOS is deployed as three application services with managed infrastructure:
 
-- **Frontend:** Vercel
-- **Backend:** Render
-- **AI Service:** Render
-- **Database:** MongoDB Atlas
-- **Media Storage:** ImageKit
-- **Email:** Brevo
+| Service | Platform | URL |
+|---|---|---|
+| 🌐 Frontend | Vercel | https://memoryos-red.vercel.app |
+| ⚙️ Backend API | Render | https://memoryos-backend-z6b0.onrender.com |
+| 🤖 AI Service | Render | https://memoryos-ai-8hch.onrender.com |
 
-**Live:** [memoryos-red.vercel.app](https://memoryos-red.vercel.app)
+**Infrastructure:** MongoDB Atlas · ImageKit · Brevo
+
+> The Backend API and AI Service are primarily service endpoints and may not provide a user-facing web interface.
 
 ## 🔐 Security
 
